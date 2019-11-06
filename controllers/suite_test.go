@@ -17,7 +17,9 @@ package controllers
 
 import (
 	"github.com/szoio/resource-operator-factory/controllers/a"
+	"github.com/szoio/resource-operator-factory/controllers/shared"
 	"github.com/szoio/resource-operator-factory/reconciler"
+	"math/rand"
 	"path/filepath"
 	"testing"
 	"time"
@@ -45,6 +47,7 @@ var testEnv *envtest.Environment
 
 const timeout = time.Second * 300
 const interval = time.Second * 1
+var store = shared.CreateStore()
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -88,6 +91,7 @@ var _ = BeforeSuite(func(done Done) {
 	err = (&a.ControllerFactory{
 		ClientCreator: a.CreateResourceManager,
 		Scheme:        scheme.Scheme,
+		Store:         store,
 	}).SetupWithManager(k8sManager, controllerParams, nil)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -107,3 +111,18 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())
 })
+
+func randomStringWithCharset(length int, charset string) string {
+	var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz"
+
+func RandomString(length int) string {
+	return randomStringWithCharset(length, charset)
+}

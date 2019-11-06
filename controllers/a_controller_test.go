@@ -30,12 +30,14 @@ var _ = Describe("Test Controller", func() {
 				Namespace: "default",
 			}
 
+			id := "a-" + RandomString(10)
+
 			created := &v1alpha1.A{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      key.Name,
 					Namespace: key.Namespace,
 				},
-				Spec: v1alpha1.ASpec{Data: "Data"},
+				Spec: v1alpha1.ASpec{Id: id},
 			}
 
 			// Create
@@ -46,6 +48,12 @@ var _ = Describe("Test Controller", func() {
 				k8sClient.Get(context.Background(), key, f)
 				return f.Status.State == string(reconciler.Succeeded)
 			}, timeout, interval).Should(BeTrue())
+
+			record := store.GetRecord(id)
+			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
+				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultReady,
+			}))
 
 			// Delete
 			By("Expecting to delete successfully")
@@ -60,6 +68,14 @@ var _ = Describe("Test Controller", func() {
 				f := &v1alpha1.A{}
 				return k8sClient.Get(context.Background(), key, f)
 			}, timeout, interval).ShouldNot(Succeed())
+
+			record = store.GetRecord(id)
+			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
+				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultReady,
+				reconciler.VerifyResultDeleting,
+				reconciler.VerifyResultMissing,
+			}))
 
 			log.Info("Finished creating an A...")
 		})

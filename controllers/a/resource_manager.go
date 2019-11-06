@@ -30,11 +30,11 @@ type ResourceManager struct {
 	Store    *shared.Store
 }
 
-func CreateResourceManager(logger logr.Logger, recorder record.EventRecorder) ResourceManager {
+func CreateResourceManager(logger logr.Logger, recorder record.EventRecorder, store *shared.Store) ResourceManager {
 	return ResourceManager{
 		Logger:   logger,
 		Recorder: recorder,
-		Store:    shared.CreateStore(),
+		Store:    store,
 	}
 }
 
@@ -44,7 +44,7 @@ func (r *ResourceManager) Create(ctx context.Context, s reconciler.ResourceSpec)
 		return reconciler.ApplyError, err
 	}
 
-	id := instance.Spec.Data
+	id := instance.Spec.Id
 	r.Store.Create(id)
 
 	return reconciler.ApplyAwaitingVerification, err
@@ -60,7 +60,7 @@ func (r *ResourceManager) Verify(ctx context.Context, s reconciler.ResourceSpec)
 		return reconciler.VerifyError, err
 	}
 
-	id := instance.Spec.Data
+	id := instance.Spec.Id
 	result := r.Store.Get(id)
 	return reconciler.VerifyResponse{
 		Result: result,
@@ -69,9 +69,12 @@ func (r *ResourceManager) Verify(ctx context.Context, s reconciler.ResourceSpec)
 }
 
 func (r *ResourceManager) Delete(ctx context.Context, s reconciler.ResourceSpec) (reconciler.DeleteResult, error) {
-	_, err := convertInstance(s.Instance)
+	instance, err := convertInstance(s.Instance)
 	if err != nil {
 		return reconciler.DeleteError, err
 	}
-	return reconciler.DeleteSucceeded, nil
+
+	id := instance.Spec.Id
+	r.Store.Delete(id)
+	return reconciler.DeleteAwaitingVerification, nil
 }

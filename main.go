@@ -18,6 +18,7 @@ package main
 import (
 	"flag"
 	"github.com/szoio/resource-operator-factory/controllers/a"
+	"github.com/szoio/resource-operator-factory/controllers/shared"
 	"github.com/szoio/resource-operator-factory/reconciler"
 	"os"
 
@@ -66,9 +67,11 @@ func main() {
 	controllerParams := reconciler.ReconcileParameters{
 		RequeueAfter: 10,
 	}
+	store := shared.CreateStore()
 	if err = (&a.ControllerFactory{
 		ClientCreator: a.CreateResourceManager,
 		Scheme:        scheme,
+		Store:         store,
 	}).SetupWithManager(mgr, controllerParams, nil); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "A")
 		os.Exit(1)

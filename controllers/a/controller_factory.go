@@ -31,8 +31,9 @@ import (
 )
 
 type ControllerFactory struct {
-	ClientCreator func(logr.Logger, record.EventRecorder) ResourceManager
+	ClientCreator func(logr.Logger, record.EventRecorder, *shared.Store) ResourceManager
 	Scheme        *runtime.Scheme
+	Store    	  *shared.Store
 }
 
 // +kubebuilder:rbac:groups=test.stephenzoio.com,resources=as,verbs=get;list;watch;Create;update;patch;delete
@@ -59,7 +60,7 @@ func (factory *ControllerFactory) SetupWithManager(mgr ctrl.Manager, parameters 
 }
 
 func (factory *ControllerFactory) create(kubeClient client.Client, logger logr.Logger, recorder record.EventRecorder, parameters reconciler.ReconcileParameters) (*reconciler.GenericController, error) {
-	resourceManagerClient := factory.ClientCreator(logger, recorder)
+	resourceManagerClient := factory.ClientCreator(logger, recorder, factory.Store)
 
 	return reconciler.CreateGenericController(parameters, ResourceKind, kubeClient, logger, recorder, factory.Scheme, &resourceManagerClient, &definitionManager{}, FinalizerName, shared.AnnotationBaseName, nil)
 }
