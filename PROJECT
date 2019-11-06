@@ -1,0 +1,7 @@
+version: "2"
+domain: stephenzoio.com
+repo: github.com/szoio/resource-operator-factory
+resources:
+- group: test
+  version: v1alpha1
+  kind: A
