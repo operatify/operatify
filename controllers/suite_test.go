@@ -17,7 +17,7 @@ package controllers
 
 import (
 	"github.com/szoio/resource-operator-factory/controllers/a"
-	"github.com/szoio/resource-operator-factory/controllers/shared"
+	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
 	"math/rand"
 	"path/filepath"
@@ -27,7 +27,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	testv1alpha1 "github.com/szoio/resource-operator-factory/api/v1alpha1"
+	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -47,7 +47,8 @@ var testEnv *envtest.Environment
 
 const timeout = time.Second * 300
 const interval = time.Second * 1
-var store = shared.CreateStore()
+
+var resourceManager = manager.CreateManager()
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -70,7 +71,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	err = testv1alpha1.AddToScheme(scheme.Scheme)
+	err = api.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
@@ -91,7 +92,7 @@ var _ = BeforeSuite(func(done Done) {
 	err = (&a.ControllerFactory{
 		ClientCreator: a.CreateResourceManager,
 		Scheme:        scheme.Scheme,
-		Store:         store,
+		Manager:       resourceManager,
 	}).SetupWithManager(k8sManager, controllerParams, nil)
 	Expect(err).ToNot(HaveOccurred())
 

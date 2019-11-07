@@ -19,7 +19,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/szoio/resource-operator-factory/controllers/shared"
+	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
 	"k8s.io/client-go/tools/record"
 )
@@ -27,14 +27,14 @@ import (
 type ResourceManager struct {
 	Logger   logr.Logger
 	Recorder record.EventRecorder
-	Store    *shared.Store
+	Manager  *manager.Manager
 }
 
-func CreateResourceManager(logger logr.Logger, recorder record.EventRecorder, store *shared.Store) ResourceManager {
+func CreateResourceManager(logger logr.Logger, recorder record.EventRecorder, manager *manager.Manager) ResourceManager {
 	return ResourceManager{
 		Logger:   logger,
 		Recorder: recorder,
-		Store:    store,
+		Manager:  manager,
 	}
 }
 
@@ -45,9 +45,11 @@ func (r *ResourceManager) Create(ctx context.Context, s reconciler.ResourceSpec)
 	}
 
 	id := instance.Spec.Id
-	r.Store.Create(id)
-
-	return reconciler.ApplyAwaitingVerification, err
+	result, err := r.Manager.Create(id)
+	return reconciler.ApplyResponse{
+		Result: result,
+		Status: nil,
+	}, err
 }
 
 func (_ *ResourceManager) Update(ctx context.Context, r reconciler.ResourceSpec) (reconciler.ApplyResponse, error) {
@@ -61,11 +63,11 @@ func (r *ResourceManager) Verify(ctx context.Context, s reconciler.ResourceSpec)
 	}
 
 	id := instance.Spec.Id
-	result := r.Store.Get(id)
+	result, err := r.Manager.Get(id)
 	return reconciler.VerifyResponse{
 		Result: result,
 		Status: nil,
-	}, nil
+	}, err
 }
 
 func (r *ResourceManager) Delete(ctx context.Context, s reconciler.ResourceSpec) (reconciler.DeleteResult, error) {
@@ -75,6 +77,5 @@ func (r *ResourceManager) Delete(ctx context.Context, s reconciler.ResourceSpec)
 	}
 
 	id := instance.Spec.Id
-	r.Store.Delete(id)
-	return reconciler.DeleteAwaitingVerification, nil
+	return r.Manager.Delete(id)
 }

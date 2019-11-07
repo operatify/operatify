@@ -17,7 +17,8 @@ package a
 
 import (
 	"context"
-	"github.com/szoio/resource-operator-factory/api/v1alpha1"
+	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
+	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/controllers/shared"
 	"github.com/szoio/resource-operator-factory/reconciler"
 
@@ -31,9 +32,9 @@ import (
 )
 
 type ControllerFactory struct {
-	ClientCreator func(logr.Logger, record.EventRecorder, *shared.Store) ResourceManager
+	ClientCreator func(logr.Logger, record.EventRecorder, *manager.Manager) ResourceManager
 	Scheme        *runtime.Scheme
-	Store    	  *shared.Store
+	Manager       *manager.Manager
 }
 
 // +kubebuilder:rbac:groups=test.stephenzoio.com,resources=as,verbs=get;list;watch;Create;update;patch;delete
@@ -55,12 +56,12 @@ func (factory *ControllerFactory) SetupWithManager(mgr ctrl.Manager, parameters 
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.A{}).
+		For(&api.A{}).
 		Complete(gc)
 }
 
 func (factory *ControllerFactory) create(kubeClient client.Client, logger logr.Logger, recorder record.EventRecorder, parameters reconciler.ReconcileParameters) (*reconciler.GenericController, error) {
-	resourceManagerClient := factory.ClientCreator(logger, recorder, factory.Store)
+	resourceManagerClient := factory.ClientCreator(logger, recorder, factory.Manager)
 
 	return reconciler.CreateGenericController(parameters, ResourceKind, kubeClient, logger, recorder, factory.Scheme, &resourceManagerClient, &definitionManager{}, FinalizerName, shared.AnnotationBaseName, nil)
 }
@@ -69,7 +70,7 @@ type definitionManager struct{}
 
 func (dm *definitionManager) GetDefinition(ctx context.Context, namespacedName types.NamespacedName) *reconciler.ResourceDefinition {
 	return &reconciler.ResourceDefinition{
-		InitialInstance: &v1alpha1.A{},
+		InitialInstance: &api.A{},
 		StatusAccessor:  GetStatus,
 		StatusUpdater:   updateStatus,
 	}

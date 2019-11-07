@@ -17,7 +17,7 @@ package a
 
 import (
 	"fmt"
-	"github.com/szoio/resource-operator-factory/api/v1alpha1"
+	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
 	"github.com/szoio/resource-operator-factory/reconciler"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,8 +44,8 @@ func updateStatus(instance runtime.Object, status *reconciler.Status) error {
 	return nil
 }
 
-func convertInstance(obj runtime.Object) (*v1alpha1.A, error) {
-	local, ok := obj.(*v1alpha1.A)
+func convertInstance(obj runtime.Object) (*api.A, error) {
+	local, ok := obj.(*api.A)
 	if !ok {
 		return nil, fmt.Errorf("failed type assertion on kind: Dcluster")
 	}
