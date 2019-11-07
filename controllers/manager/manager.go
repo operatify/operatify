@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/szoio/resource-operator-factory/reconciler"
 	"math/rand"
 	"time"
@@ -86,6 +87,11 @@ func (m *Manager) AddBehaviour(id string, b Behaviour) {
 	x.Behaviours = append(x.Behaviours, b)
 }
 
+func (m *Manager) ClearBehaviours(id string) {
+	x := m.getOrCreate(id)
+	x.Behaviours = []Behaviour{}
+}
+
 func (m *Manager) GetRecord(id string) *Data {
 	r := m.dataStore[id]
 	if r == nil {
@@ -129,9 +135,9 @@ func (m *Manager) getOperation(id string, event Event) Operation {
 	case EventUpdate:
 		return UpdateSync.AsOperation()
 	case EventGet:
-		return GetStandard.ToOperation()
+		return GetStandard.AsOperation()
 	case EventDelete:
-		return DeleteAsync.ToOperation()
+		return DeleteAsync.AsOperation()
 	}
 	return nil
 }
@@ -149,14 +155,14 @@ func (x ApplyOperation) AsOperation() Operation {
 	}
 }
 
-func (x DeleteOperation) ToOperation() Operation {
+func (x DeleteOperation) AsOperation() Operation {
 	return func(m *Manager, id string) (s string, e error) {
 		r, e := x(m, id)
 		return string(r), e
 	}
 }
 
-func (x GetOperation) ToOperation() Operation {
+func (x GetOperation) AsOperation() Operation {
 	return func(m *Manager, id string) (s string, e error) {
 		r, e := x(m, id)
 		return string(r), e
@@ -180,6 +186,11 @@ var CreateSync ApplyOperation = func(m *Manager, id string) (reconciler.ApplyRes
 	return reconciler.ApplyResultSucceeded, nil
 }
 
+var CreateFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
+	m.Set(id, reconciler.VerifyResultError)
+	return reconciler.ApplyResultError, fmt.Errorf("error creating resource")
+}
+
 var UpdateSync = CreateSync
 
 var DeleteAsync DeleteOperation = func(m *Manager, id string) (reconciler.DeleteResult, error) {
@@ -194,4 +205,15 @@ var GetStandard GetOperation = func(m *Manager, id string) (reconciler.VerifyRes
 		return reconciler.VerifyResultMissing, nil
 	}
 	return x.States[len(x.States)-1], nil
+}
+
+var VerifyFail GetOperation = func(m *Manager, id string) (reconciler.VerifyResult, error) {
+	m.Set(id, reconciler.VerifyResultError)
+	return reconciler.VerifyResultError, fmt.Errorf("failed to verify resource")
+}
+
+var CreateCompleteFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
+	m.Set(id, reconciler.VerifyResultProvisioning)
+	go m.asyncUpdate(id, reconciler.VerifyResultError, time.Duration(rand.Intn(3)+2))
+	return reconciler.ApplyResultAwaitingVerification, nil
 }

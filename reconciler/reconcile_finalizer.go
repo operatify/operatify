@@ -51,15 +51,15 @@ func (r *reconcileFinalizer) handle() (ctrl.Result, error) {
 		verifyResponse, err := r.ResourceManager.Verify(ctx, r.resourceSpec())
 		verifyResult := verifyResponse.Result
 
-		if verifyResult.error() || err != nil {
-			log.Info("An error occurred verifying state of managed object in finalizer. Cannot confirm that managed object has been deleted. Continuing deletion of kubernetes object anyway.")
-			// TODO: maybe should rather retry a certain number of times before failing
-			removeFinalizer = true
-		} else if verifyResult.missing() {
+		if verifyResult.missing() {
 			removeFinalizer = true
 		} else if verifyResult.deleting() {
 			requeue = true
-		} else if !isTerminating { // and one of verifyResult.ready() || verifyResult.recreateRequired() || verifyResult.updateRequired()
+		} else if !isTerminating { // and one of verifyResult.ready() || verifyResult.recreateRequired() || verifyResult.updateRequired() || verifyResult.error()
+			if verifyResult.error() || err != nil {
+				log.Info("An error occurred verifying state of managed object in finalizer. Cannot confirm that managed object can be deleted. Continuing deletion of kubernetes object anyway.")
+				// TODO: maybe should rather retry a certain number of times before failing
+			}
 			permissions := r.getAccessPermissions()
 			if !permissions.delete() {
 				// if delete permission is turned off, just finalize, but don't delete on Azure
