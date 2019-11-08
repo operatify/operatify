@@ -4,9 +4,9 @@ import (
 	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/prometheus/common/log"
 	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
+	"reflect"
 )
 
 var _ = FDescribe("Test Reconciler", func() {
@@ -20,19 +20,13 @@ var _ = FDescribe("Test Reconciler", func() {
 	})
 
 	Context("Create and Delete", func() {
-		It("should create and delete with async operations", func() {
-			log.Info("Creating an A asynchronously...")
-
+		It("should create asynchronously and delete asynchronously", func() {
 			aId := "a-" + RandomString(10)
 			key, created := nameAndSpec(aId)
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-
-			Eventually(func() bool {
-				f, _ := getObject(key)
-				return f.Status.State == string(reconciler.Succeeded)
-			}, timeout, interval).Should(BeTrue())
+			waitUntilProvisionState(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -42,15 +36,10 @@ var _ = FDescribe("Test Reconciler", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Eventually(func() error {
-				return deleteObject(key)
-			}, timeout, interval).Should(Succeed())
+			Expect(deleteObject(key)).To(Succeed())
 
 			By("Expecting to delete finish")
-			Eventually(func() error {
-				_, err := getObject(key)
-				return err
-			}, timeout, interval).ShouldNot(Succeed())
+			waitUntilObjectMissing(key)
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -59,13 +48,9 @@ var _ = FDescribe("Test Reconciler", func() {
 				reconciler.VerifyResultDeleting,
 				reconciler.VerifyResultMissing,
 			}))
-
-			log.Info("Finished creating an A...")
 		})
 
-		It("should create and delete sync operations", func() {
-			log.Info("Creating an A synchronously...")
-
+		It("should create synchronously and delete asynchronously", func() {
 			aId := "a-" + RandomString(10)
 			key, created := nameAndSpec(aId)
 
@@ -77,11 +62,7 @@ var _ = FDescribe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-
-			Eventually(func() bool {
-				f, _ := getObject(key)
-				return f.Status.State == string(reconciler.Succeeded)
-			}, timeout, interval).Should(BeTrue())
+			waitUntilProvisionState(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -90,15 +71,10 @@ var _ = FDescribe("Test Reconciler", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Eventually(func() error {
-				return deleteObject(key)
-			}, timeout, interval).Should(Succeed())
+			Expect(deleteObject(key)).To(Succeed())
 
 			By("Expecting to delete finish")
-			Eventually(func() error {
-				_, err := getObject(key)
-				return err
-			}, timeout, interval).ShouldNot(Succeed())
+			waitUntilObjectMissing(key)
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -106,8 +82,132 @@ var _ = FDescribe("Test Reconciler", func() {
 				reconciler.VerifyResultDeleting,
 				reconciler.VerifyResultMissing,
 			}))
+		})
 
-			log.Info("Finished creating an A...")
+		It("should create asynchronously and delete synchronously", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpec(aId)
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
+
+			Eventually(func() bool {
+				f, _ := getObject(key)
+				return f.Status.State == string(reconciler.Succeeded)
+			}, timeout, interval).Should(BeTrue())
+
+			record := resourceManager.GetRecord(aId)
+			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
+				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultReady,
+			}))
+
+			// tell it to run delete synchronously
+			resourceManager.AddBehaviour(aId, manager.Behaviour{
+				Event:     manager.EventDelete,
+				Operation: manager.DeleteSync.AsOperation(),
+			})
+
+			// Delete
+			By("Expecting to delete successfully")
+			Eventually(func() error {
+				return deleteObject(key)
+			}, timeout, interval).Should(Succeed())
+
+			By("Expecting to delete finish")
+			waitUntilObjectMissing(key)
+
+			record = resourceManager.GetRecord(aId)
+			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
+				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultReady,
+				reconciler.VerifyResultMissing,
+			}))
+		})
+	})
+
+	Context("Update/Recreate", func() {
+		It("should update synchronously", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpec(aId)
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
+			waitUntilProvisionState(key, reconciler.Succeeded)
+
+			// tell it update is required (ony for the next verify)
+			resourceManager.AddBehaviour(aId, manager.Behaviour{
+				Event:     manager.EventGet,
+				Operation: manager.VerifyNeedsUpdate.AsOperation(),
+				From:      resourceManager.CountEvents(aId, manager.EventGet),
+				Count:     1,
+			})
+
+			toUpdate, _ := getObject(key)
+			toUpdate.Spec.IntData = 1
+			toUpdate.Spec.StringData = "Updated"
+			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
+
+			record := resourceManager.GetRecord(aId)
+			Eventually(func() bool {
+				return reflect.DeepEqual(record.States, []reconciler.VerifyResult{
+					reconciler.VerifyResultProvisioning,
+					reconciler.VerifyResultReady,
+					reconciler.VerifyResultUpdateRequired,
+					reconciler.VerifyResultReady,
+				})
+			}, timeout, interval).Should(BeTrue())
+
+			Expect(resourceManager.CountEvents(aId, manager.EventCreate)).To(Equal(1))
+			Expect(resourceManager.CountEvents(aId, manager.EventUpdate)).To(Equal(1))
+
+			updated, _ := getObject(key)
+			Expect(updated.Spec.StringData).To(Equal("Updated"))
+		})
+
+		FIt("should update asynchronously", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpec(aId)
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
+			waitUntilProvisionState(key, reconciler.Succeeded)
+
+			// tell it update is required (ony for the next verify)
+			resourceManager.AddBehaviour(aId, manager.Behaviour{
+				Event:     manager.EventGet,
+				Operation: manager.VerifyNeedsUpdate.AsOperation(),
+				From:      resourceManager.CountEvents(aId, manager.EventGet),
+				Count:     1,
+			})
+
+			// tell to update asynchronously
+			resourceManager.AddBehaviour(aId, manager.Behaviour{
+				Event:     manager.EventUpdate,
+				Operation: manager.UpdateAsync.AsOperation(),
+			})
+
+			toUpdate, _ := getObject(key)
+			toUpdate.Spec.IntData = 1
+			toUpdate.Spec.StringData = "Updated"
+			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
+
+			record := resourceManager.GetRecord(aId)
+			Eventually(func() bool {
+				return reflect.DeepEqual(record.States, []reconciler.VerifyResult{
+					reconciler.VerifyResultProvisioning,
+					reconciler.VerifyResultReady,
+					reconciler.VerifyResultUpdateRequired,
+					reconciler.VerifyResultProvisioning,
+					reconciler.VerifyResultReady,
+				})
+			}, timeout, interval).Should(BeTrue())
+
+			Expect(resourceManager.CountEvents(aId, manager.EventCreate)).To(Equal(1))
+			Expect(resourceManager.CountEvents(aId, manager.EventUpdate)).To(Equal(1))
+
+			updated, _ := getObject(key)
+			Expect(updated.Spec.StringData).To(Equal("Updated"))
 		})
 	})
 
@@ -123,13 +223,11 @@ var _ = FDescribe("Test Reconciler", func() {
 			})
 
 			// Create
+			By("Expecting to create successfully")
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
+			waitUntilProvisionState(key, reconciler.Failed)
 
-			Eventually(func() bool {
-				f, _ := getObject(key)
-				return f.Status.State == string(reconciler.Failed)
-			}, timeout, interval).Should(BeTrue())
-
+			By("Expecting correct state transitions")
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
 				reconciler.VerifyResultError,
@@ -140,13 +238,10 @@ var _ = FDescribe("Test Reconciler", func() {
 			Expect(deleteObject(key)).Should(Succeed())
 
 			By("Expecting to delete finish")
-			Eventually(func() error {
-				_, err := getObject(key)
-				return err
-			}, timeout, interval).ShouldNot(Succeed())
+			waitUntilObjectMissing(key)
 		})
 
-		It("should fail if fails complete async creation", func() {
+		FIt("should fail if fails complete async creation", func() {
 			aId := "a-" + RandomString(10)
 			key, created := nameAndSpec(aId)
 
@@ -158,11 +253,7 @@ var _ = FDescribe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-
-			Eventually(func() bool {
-				f, _ := getObject(key)
-				return f.Status.State == string(reconciler.Failed)
-			}, timeout, interval).Should(BeTrue())
+			waitUntilProvisionState(key, reconciler.Failed)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -178,10 +269,7 @@ var _ = FDescribe("Test Reconciler", func() {
 			Expect(deleteObject(key)).Should(Succeed())
 
 			By("Expecting to delete finish")
-			Eventually(func() error {
-				_, err := getObject(key)
-				return err
-			}, timeout, interval).ShouldNot(Succeed())
+			waitUntilObjectMissing(key)
 
 			// TODO: should it this?
 			record = resourceManager.GetRecord(aId)
@@ -201,16 +289,12 @@ var _ = FDescribe("Test Reconciler", func() {
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
 				Event:     manager.EventGet,
 				Operation: manager.VerifyFail.AsOperation(),
-				Count:     1,
+				From:      1,
 			})
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-
-			Eventually(func() bool {
-				f, _ := getObject(key)
-				return f.Status.State == string(reconciler.Failed)
-			}, timeout, interval).Should(BeTrue())
+			waitUntilProvisionState(key, reconciler.Failed)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -228,10 +312,7 @@ var _ = FDescribe("Test Reconciler", func() {
 			Expect(deleteObject(key)).Should(Succeed())
 
 			By("Expecting to delete finish")
-			Eventually(func() error {
-				_, err := getObject(key)
-				return err
-			}, timeout, interval).ShouldNot(Succeed())
+			waitUntilObjectMissing(key)
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -244,4 +325,5 @@ var _ = FDescribe("Test Reconciler", func() {
 			}))
 		})
 	})
+
 })

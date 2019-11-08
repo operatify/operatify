@@ -45,8 +45,8 @@ var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 
-const timeout = time.Second * 300
-const interval = time.Second * 1
+const timeout = time.Second * 5
+const interval = time.Millisecond * 100
 
 var resourceManager = manager.CreateManager()
 

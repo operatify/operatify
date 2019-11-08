@@ -114,15 +114,10 @@ func (m *Manager) apply(id string, event Event) (string, error) {
 func (m *Manager) getOperation(id string, event Event) Operation {
 	x := m.getOrCreate(id)
 	// count the number of events of type Event
-	count := 0
-	for _, e := range x.Events {
-		if e == event {
-			count++
-		}
-	}
+	eventCount := m.countEvents(x, event)
 	var behaviour *Behaviour = nil
 	for _, b := range x.Behaviours {
-		if b.Event == event && b.Count <= count {
+		if b.Event == event && b.From <= eventCount && (b.Count == 0 || b.From+b.Count > eventCount) {
 			behaviour = &b
 		}
 	}
@@ -142,9 +137,24 @@ func (m *Manager) getOperation(id string, event Event) Operation {
 	return nil
 }
 
+func (m *Manager) CountEvents(id string, event Event) int {
+	return m.countEvents(m.getOrCreate(id), event)
+}
+
+func (m *Manager) countEvents(x *Data, event Event) int {
+	count := 0
+	for _, e := range x.Events {
+		if e == event {
+			count++
+		}
+	}
+	return count
+}
+
 type Behaviour struct {
 	Event     Event
 	Operation Operation
+	From      int
 	Count     int
 }
 
@@ -169,6 +179,16 @@ func (x GetOperation) AsOperation() Operation {
 	}
 }
 
+const (
+	startMillis = 400
+	endMillis   = 500
+)
+
+func randomDelay(startMillis int, endMillis int) time.Duration {
+	delay := time.Duration(rand.Intn(startMillis)+(endMillis-startMillis)) * time.Millisecond
+	return delay
+}
+
 type Operation func(m *Manager, id string) (string, error)
 type ApplyOperation func(m *Manager, id string) (reconciler.ApplyResult, error)
 type GetOperation func(m *Manager, id string) (reconciler.VerifyResult, error)
@@ -177,7 +197,7 @@ type DeleteOperation func(m *Manager, id string) (reconciler.DeleteResult, error
 // Include operations below
 var CreateAsync ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
 	m.Set(id, reconciler.VerifyResultProvisioning)
-	go m.asyncUpdate(id, reconciler.VerifyResultReady, time.Duration(rand.Intn(3)+2))
+	go m.asyncUpdate(id, reconciler.VerifyResultReady, randomDelay(startMillis, endMillis))
 	return reconciler.ApplyResultAwaitingVerification, nil
 }
 
@@ -192,11 +212,17 @@ var CreateFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyRes
 }
 
 var UpdateSync = CreateSync
+var UpdateAsync = CreateAsync
 
 var DeleteAsync DeleteOperation = func(m *Manager, id string) (reconciler.DeleteResult, error) {
 	m.Set(id, reconciler.VerifyResultDeleting)
-	go m.asyncUpdate(id, reconciler.VerifyResultMissing, time.Duration(rand.Intn(3)+2))
+	go m.asyncUpdate(id, reconciler.VerifyResultMissing, randomDelay(startMillis, endMillis))
 	return reconciler.DeleteAwaitingVerification, nil
+}
+
+var DeleteSync DeleteOperation = func(m *Manager, id string) (reconciler.DeleteResult, error) {
+	m.Set(id, reconciler.VerifyResultMissing)
+	return reconciler.DeleteSucceeded, nil
 }
 
 var GetStandard GetOperation = func(m *Manager, id string) (reconciler.VerifyResult, error) {
@@ -212,8 +238,13 @@ var VerifyFail GetOperation = func(m *Manager, id string) (reconciler.VerifyResu
 	return reconciler.VerifyResultError, fmt.Errorf("failed to verify resource")
 }
 
+var VerifyNeedsUpdate GetOperation = func(m *Manager, id string) (reconciler.VerifyResult, error) {
+	m.Set(id, reconciler.VerifyResultUpdateRequired)
+	return reconciler.VerifyResultUpdateRequired, nil
+}
+
 var CreateCompleteFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
 	m.Set(id, reconciler.VerifyResultProvisioning)
-	go m.asyncUpdate(id, reconciler.VerifyResultError, time.Duration(rand.Intn(3)+2))
+	go m.asyncUpdate(id, reconciler.VerifyResultError, randomDelay(startMillis, endMillis))
 	return reconciler.ApplyResultAwaitingVerification, nil
 }

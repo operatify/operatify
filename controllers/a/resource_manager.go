@@ -17,7 +17,6 @@ package a
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
@@ -52,8 +51,18 @@ func (r *ResourceManager) Create(ctx context.Context, s reconciler.ResourceSpec)
 	}, err
 }
 
-func (_ *ResourceManager) Update(ctx context.Context, r reconciler.ResourceSpec) (reconciler.ApplyResponse, error) {
-	return reconciler.ApplyError, fmt.Errorf("updating not currently supported")
+func (r *ResourceManager) Update(ctx context.Context, s reconciler.ResourceSpec) (reconciler.ApplyResponse, error) {
+	instance, err := convertInstance(s.Instance)
+	if err != nil {
+		return reconciler.ApplyError, err
+	}
+
+	id := instance.Spec.Id
+	result, err := r.Manager.Update(id)
+	return reconciler.ApplyResponse{
+		Result: result,
+		Status: &instance.Spec,
+	}, err
 }
 
 func (r *ResourceManager) Verify(ctx context.Context, s reconciler.ResourceSpec) (reconciler.VerifyResponse, error) {
@@ -66,7 +75,7 @@ func (r *ResourceManager) Verify(ctx context.Context, s reconciler.ResourceSpec)
 	result, err := r.Manager.Get(id)
 	return reconciler.VerifyResponse{
 		Result: result,
-		Status: nil,
+		Status: &instance.Spec,
 	}, err
 }
 

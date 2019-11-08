@@ -26,7 +26,9 @@ import (
 type ASpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Id string `json:"id,omitempty"`
+	Id         string `json:"id,omitempty"`
+	StringData string `json:"stringData,omitempty"`
+	IntData    int    `json:"intData,omitempty"`
 }
 
 // +kubebuilder:object:root=true

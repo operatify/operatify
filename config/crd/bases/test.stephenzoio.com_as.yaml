@@ -36,6 +36,10 @@ spec:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "make" to regenerate code after modifying this file'
               type: string
+            intData:
+              type: integer
+            stringData:
+              type: string
           type: object
         status:
           description: AStatus defines the observed state of A
