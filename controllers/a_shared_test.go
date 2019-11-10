@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
+
 	. "github.com/onsi/gomega"
 	"github.com/szoio/resource-operator-factory/api/v1alpha1"
 	"github.com/szoio/resource-operator-factory/reconciler"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 

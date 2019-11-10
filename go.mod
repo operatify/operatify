@@ -10,6 +10,7 @@ require (
 	github.com/onsi/gomega v1.7.0
 	github.com/prometheus/common v0.0.0-20180801064454-c7de2306084e
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	golang.org/x/tools v0.0.0-20191109212701-97ad0ed33101 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	k8s.io/api v0.0.0-20190409021203-6e4e0e4f393b
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d

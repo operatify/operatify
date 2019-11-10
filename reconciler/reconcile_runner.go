@@ -451,7 +451,7 @@ func (r *reconcileRunner) applyTransition(ctx context.Context, reason string, ne
 func (r *reconcileRunner) getRequeueAfter(transitionState ProvisionState) time.Duration {
 	parameters := r.Parameters
 	requeueAfterDuration := func(requeueSeconds int) time.Duration {
-		requeueAfter := time.Duration(requeueSeconds) * time.Second
+		requeueAfter := time.Duration(requeueSeconds) * time.Millisecond
 		return requeueAfter
 	}
 
@@ -459,11 +459,11 @@ func (r *reconcileRunner) getRequeueAfter(transitionState ProvisionState) time.D
 		transitionState == Verifying ||
 		transitionState == Recreating {
 		// must by default have a non zero requeue for these states
-		requeueSeconds := parameters.RequeueAfter
-		if requeueSeconds == 0 {
-			requeueSeconds = 30
+		requeueMillis := parameters.RequeueAfter
+		if requeueMillis == 0 {
+			requeueMillis = 30000
 		}
-		return requeueAfterDuration(requeueSeconds)
+		return requeueAfterDuration(requeueMillis)
 	} else if transitionState == Failed {
 		return requeueAfterDuration(parameters.RequeueAfterFailure)
 	} else if transitionState == Succeeded {

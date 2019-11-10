@@ -17,10 +17,11 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/szoio/resource-operator-factory/controllers/a"
 	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
-	"os"
 
 	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -65,7 +66,7 @@ func main() {
 	}
 
 	controllerParams := reconciler.ReconcileParameters{
-		RequeueAfter: 10,
+		RequeueAfter: 10000,
 	}
 	store := manager.CreateManager()
 	if err = (&a.ControllerFactory{

@@ -16,13 +16,14 @@ limitations under the License.
 package controllers
 
 import (
-	"github.com/szoio/resource-operator-factory/controllers/a"
-	"github.com/szoio/resource-operator-factory/controllers/manager"
-	"github.com/szoio/resource-operator-factory/reconciler"
 	"math/rand"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/szoio/resource-operator-factory/controllers/a"
+	"github.com/szoio/resource-operator-factory/controllers/manager"
+	"github.com/szoio/resource-operator-factory/reconciler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -46,7 +47,7 @@ var k8sClient client.Client
 var testEnv *envtest.Environment
 
 const timeout = time.Second * 5
-const interval = time.Millisecond * 100
+const interval = time.Millisecond * 500
 
 var resourceManager = manager.CreateManager()
 
@@ -85,7 +86,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(k8sClient).ToNot(BeNil())
 
 	controllerParams := reconciler.ReconcileParameters{
-		RequeueAfter: 1,
+		RequeueAfter: 100,
 	}
 
 	// Create a test controller

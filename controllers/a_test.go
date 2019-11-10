@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"context"
+	"reflect"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
-	"reflect"
 )
 
-var _ = FDescribe("Test Reconciler", func() {
+var _ = Describe("Test Reconciler", func() {
 
 	BeforeEach(func() {
 		// Add any setup steps that needs to be executed before each test
@@ -90,11 +91,7 @@ var _ = FDescribe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-
-			Eventually(func() bool {
-				f, _ := getObject(key)
-				return f.Status.State == string(reconciler.Succeeded)
-			}, timeout, interval).Should(BeTrue())
+			waitUntilProvisionState(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -148,8 +145,8 @@ var _ = FDescribe("Test Reconciler", func() {
 			toUpdate.Spec.StringData = "Updated"
 			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
 
-			record := resourceManager.GetRecord(aId)
 			Eventually(func() bool {
+				record := resourceManager.GetRecord(aId)
 				return reflect.DeepEqual(record.States, []reconciler.VerifyResult{
 					reconciler.VerifyResultProvisioning,
 					reconciler.VerifyResultReady,
@@ -165,7 +162,7 @@ var _ = FDescribe("Test Reconciler", func() {
 			Expect(updated.Spec.StringData).To(Equal("Updated"))
 		})
 
-		FIt("should update asynchronously", func() {
+		It("should update asynchronously", func() {
 			aId := "a-" + RandomString(10)
 			key, created := nameAndSpec(aId)
 
@@ -177,8 +174,7 @@ var _ = FDescribe("Test Reconciler", func() {
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
 				Event:     manager.EventGet,
 				Operation: manager.VerifyNeedsUpdate.AsOperation(),
-				From:      resourceManager.CountEvents(aId, manager.EventGet),
-				Count:     1,
+				OneTime:   true,
 			})
 
 			// tell to update asynchronously
@@ -191,9 +187,10 @@ var _ = FDescribe("Test Reconciler", func() {
 			toUpdate.Spec.IntData = 1
 			toUpdate.Spec.StringData = "Updated"
 			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
+			waitUntilProvisionState(key, reconciler.Succeeded)
 
-			record := resourceManager.GetRecord(aId)
 			Eventually(func() bool {
+				record := resourceManager.GetRecord(aId)
 				return reflect.DeepEqual(record.States, []reconciler.VerifyResult{
 					reconciler.VerifyResultProvisioning,
 					reconciler.VerifyResultReady,
@@ -241,7 +238,7 @@ var _ = FDescribe("Test Reconciler", func() {
 			waitUntilObjectMissing(key)
 		})
 
-		FIt("should fail if fails complete async creation", func() {
+		It("should fail if fails complete async creation", func() {
 			aId := "a-" + RandomString(10)
 			key, created := nameAndSpec(aId)
 
@@ -296,13 +293,17 @@ var _ = FDescribe("Test Reconciler", func() {
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
 			waitUntilProvisionState(key, reconciler.Failed)
 
-			record := resourceManager.GetRecord(aId)
-			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
-				reconciler.VerifyResultReady,
-				reconciler.VerifyResultError,
-				reconciler.VerifyResultError, // TODO: should it this?
-			}))
+			// wait until Ready is received
+			Eventually(func() bool {
+				record := resourceManager.GetRecord(aId)
+				for _, r := range record.States {
+					if r == reconciler.VerifyResultReady {
+						return true
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+			var recordPreStates = resourceManager.GetRecord(aId).States
 
 			// Remove the behaviours
 			resourceManager.ClearBehaviours(aId)
@@ -314,15 +315,11 @@ var _ = FDescribe("Test Reconciler", func() {
 			By("Expecting to delete finish")
 			waitUntilObjectMissing(key)
 
-			record = resourceManager.GetRecord(aId)
-			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
-				reconciler.VerifyResultReady,
-				reconciler.VerifyResultError,
-				reconciler.VerifyResultError, // TODO: should it this?
+			record := resourceManager.GetRecord(aId)
+			expectedStates := append(recordPreStates,
 				reconciler.VerifyResultDeleting,
-				reconciler.VerifyResultMissing,
-			}))
+				reconciler.VerifyResultMissing)
+			Expect(record.States).Should(Equal(expectedStates))
 		})
 	})
 

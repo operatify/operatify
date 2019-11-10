@@ -2,9 +2,10 @@ package manager
 
 import (
 	"fmt"
-	"github.com/szoio/resource-operator-factory/reconciler"
 	"math/rand"
 	"time"
+
+	"github.com/szoio/resource-operator-factory/reconciler"
 )
 
 type Event string
@@ -116,10 +117,18 @@ func (m *Manager) getOperation(id string, event Event) Operation {
 	// count the number of events of type Event
 	eventCount := m.countEvents(x, event)
 	var behaviour *Behaviour = nil
-	for _, b := range x.Behaviours {
+	deleteIndex := -1
+	for i, b := range x.Behaviours {
 		if b.Event == event && b.From <= eventCount && (b.Count == 0 || b.From+b.Count > eventCount) {
 			behaviour = &b
+			if b.OneTime {
+				deleteIndex = i
+			}
+			break
 		}
+	}
+	if deleteIndex != -1 {
+		x.Behaviours = append(x.Behaviours[:deleteIndex], x.Behaviours[deleteIndex+1:]...)
 	}
 	if behaviour != nil {
 		return behaviour.Operation
@@ -156,6 +165,7 @@ type Behaviour struct {
 	Operation Operation
 	From      int
 	Count     int
+	OneTime   bool
 }
 
 func (x ApplyOperation) AsOperation() Operation {
@@ -180,8 +190,8 @@ func (x GetOperation) AsOperation() Operation {
 }
 
 const (
-	startMillis = 400
-	endMillis   = 500
+	startMillis = 150
+	endMillis   = 400
 )
 
 func randomDelay(startMillis int, endMillis int) time.Duration {
