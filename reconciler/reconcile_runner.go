@@ -125,14 +125,14 @@ func (r *reconcileRunner) run(ctx context.Context) (ctrl.Result, error) {
 		return r.apply(ctx)
 	}
 
-	// **** PostProvisioning
-	// has created or updated, post provisioning
-	if status.IsPostProvisioning() {
-		return r.runPostProvision(ctx)
+	// **** Completing
+	// has created or updated, running completion step
+	if status.IsCompleting() {
+		return r.runCompletion(ctx)
 	}
 
 	// **** Terminating
-	if status.IsPostProvisioning() {
+	if status.IsTerminating() {
 		r.log.Info("unexpected condition. Terminating state should be handled in finalizer")
 		return ctrl.Result{}, nil
 	}
@@ -159,7 +159,7 @@ const rejectCreateManagedResource = "permission to create Azure resource is not 
 const rejectUpdateManagedResource = "permission to update Azure resource is not set. Annotation '*/access-permissions' is present, but the flag 'U' is not set"
 const rejectDeleteManagedResource = "permission to delete or recreate Azure resource is not set. Annotation '*/access-permissions' is present, but the flag 'D' is not set"
 
-func (r *reconcileRunner) verifyExecute(ctx context.Context) (ProvisionState, error) {
+func (r *reconcileRunner) verifyExecute(ctx context.Context) (ReconcileState, error) {
 	status := r.status
 	currentState := status.State
 
@@ -184,11 +184,11 @@ func (r *reconcileRunner) verifyExecute(ctx context.Context) (ProvisionState, er
 	}
 
 	// **** Ready
-	// The resource is provisioned on Azure, post provisioning can take place if necessary
+	// The resource is finished creating or updating, completion step can take place if necessary
 	if verifyResult.ready() {
 		// set the Status payload if there is any
 		r.instanceUpdater.setStatusPayload(verifyResponse.Status)
-		return r.succeedOrPostProvision(), nil
+		return r.succeedOrComplete(), nil
 	}
 
 	// **** Missing
@@ -205,10 +205,10 @@ func (r *reconcileRunner) verifyExecute(ctx context.Context) (ProvisionState, er
 		return Creating, nil
 	}
 
-	// **** Provisioning
-	// if still is in progress with provisioning requeue the reconcile loop
-	if verifyResult.provisioning() {
-		r.log.Info("Retrying verification: verification of provisioning not complete, requeuing reconcile loop")
+	// **** InProgress
+	// if still is in progress with create or update, requeue the reconcile loop
+	if verifyResult.inProgress() {
+		r.log.Info("Retrying verification: create or update in progress, requeuing reconcile loop")
 		return currentState, nil
 	}
 
@@ -256,7 +256,7 @@ func (r *reconcileRunner) apply(ctx context.Context) (ctrl.Result, error) {
 	return r.applyTransition(ctx, "Ensure", nextState, ensureErr)
 }
 
-func (r *reconcileRunner) applyExecute(ctx context.Context) (ProvisionState, error) {
+func (r *reconcileRunner) applyExecute(ctx context.Context) (ReconcileState, error) {
 
 	resourceName := r.Name
 	instance := r.instance
@@ -296,37 +296,37 @@ func (r *reconcileRunner) applyExecute(ctx context.Context) (ProvisionState, err
 	// save the last updated spec as a metadata annotation
 	r.instanceUpdater.setAnnotation(lastAppliedAnnotation, r.getJsonSpec())
 
-	// set it to succeeded, post provisioning (if there is a PostProvisioning handler), or await verification
+	// set it to succeeded, completing (if there is a CompletionHandler), or await verification
 	if applyResult.awaitingVerification() {
 		r.instanceUpdater.setStatusPayload(applyResponse.Status)
 		return Verifying, nil
 	} else if applyResult.succeeded() {
 		r.instanceUpdater.setStatusPayload(applyResponse.Status)
-		return r.succeedOrPostProvision(), nil
+		return r.succeedOrComplete(), nil
 	} else {
 		return Failed, fmt.Errorf("invalid response from Create for resource '%s'", resourceName)
 	}
 }
 
-func (r *reconcileRunner) succeedOrPostProvision() ProvisionState {
-	if r.PostProvisionFactory == nil || r.status.IsSucceeded() {
+func (r *reconcileRunner) succeedOrComplete() ReconcileState {
+	if r.CompletionFactory == nil || r.status.IsSucceeded() {
 		return Succeeded
 	} else {
-		return PostProvisioning
+		return Completing
 	}
 }
 
-func (r *reconcileRunner) runPostProvision(ctx context.Context) (ctrl.Result, error) {
+func (r *reconcileRunner) runCompletion(ctx context.Context) (ctrl.Result, error) {
 	var ppError error = nil
-	if r.PostProvisionFactory != nil {
-		if handler := r.PostProvisionFactory(r.GenericController); handler != nil {
+	if r.CompletionFactory != nil {
+		if handler := r.CompletionFactory(r.GenericController); handler != nil {
 			ppError = handler.Run(ctx, r.instance)
 		}
 	}
 	if ppError != nil {
-		return r.applyTransition(ctx, "PostProvision", Failed, ppError)
+		return r.applyTransition(ctx, "Completion", Failed, ppError)
 	} else {
-		return r.applyTransition(ctx, "PostProvision", Succeeded, nil)
+		return r.applyTransition(ctx, "Completion", Succeeded, nil)
 	}
 }
 
@@ -390,7 +390,7 @@ func (r *reconcileRunner) updateAndLog(ctx context.Context, eventType string, re
 	return nil
 }
 
-func (r *reconcileRunner) getTransitionDetails(nextState ProvisionState) (ctrl.Result, string) {
+func (r *reconcileRunner) getTransitionDetails(nextState ReconcileState) (ctrl.Result, string) {
 	requeueAfter := r.getRequeueAfter(nextState)
 	requeueResult := ctrl.Result{Requeue: requeueAfter > 0, RequeueAfter: requeueAfter}
 	message := ""
@@ -403,10 +403,10 @@ func (r *reconcileRunner) getTransitionDetails(nextState ProvisionState) (ctrl.R
 		message = fmt.Sprintf("%s %s ready to be updated.", r.ResourceKind, r.Name)
 	case Verifying:
 		message = fmt.Sprintf("%s %s verification in progress.", r.ResourceKind, r.Name)
-	case PostProvisioning:
-		message = fmt.Sprintf("%s %s provisioning succeeded and ready for post-provisioning step", r.ResourceKind, r.Name)
+	case Completing:
+		message = fmt.Sprintf("%s %s create or update succeeded and ready for completion step", r.ResourceKind, r.Name)
 	case Succeeded:
-		message = fmt.Sprintf("%s %s successfully provisioned and ready for use.", r.ResourceKind, r.Name)
+		message = fmt.Sprintf("%s %s successfully applied and ready for use.", r.ResourceKind, r.Name)
 	case Recreating:
 		message = fmt.Sprintf("%s %s deleting and recreating in progress.", r.ResourceKind, r.Name)
 	case Failed:
@@ -419,7 +419,7 @@ func (r *reconcileRunner) getTransitionDetails(nextState ProvisionState) (ctrl.R
 	return requeueResult, message
 }
 
-func (r *reconcileRunner) applyTransition(ctx context.Context, reason string, nextState ProvisionState, transitionErr error) (ctrl.Result, error) {
+func (r *reconcileRunner) applyTransition(ctx context.Context, reason string, nextState ReconcileState, transitionErr error) (ctrl.Result, error) {
 	eventType := corev1.EventTypeNormal
 	if nextState == Failed {
 		eventType = corev1.EventTypeWarning
@@ -429,7 +429,7 @@ func (r *reconcileRunner) applyTransition(ctx context.Context, reason string, ne
 		errorMsg = transitionErr.Error()
 	}
 	if nextState != r.status.State {
-		r.instanceUpdater.setProvisionState(nextState, errorMsg)
+		r.instanceUpdater.setReconcileState(nextState, errorMsg)
 	}
 	result, transitionMsg := r.getTransitionDetails(nextState)
 	updateErr := r.updateAndLog(ctx, eventType, reason, transitionMsg)
@@ -448,7 +448,7 @@ func (r *reconcileRunner) applyTransition(ctx context.Context, reason string, ne
 	return result, nil
 }
 
-func (r *reconcileRunner) getRequeueAfter(transitionState ProvisionState) time.Duration {
+func (r *reconcileRunner) getRequeueAfter(transitionState ReconcileState) time.Duration {
 	parameters := r.Parameters
 	requeueAfterDuration := func(requeueSeconds int) time.Duration {
 		requeueAfter := time.Duration(requeueSeconds) * time.Millisecond

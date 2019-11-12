@@ -90,7 +90,7 @@ func (r *reconcileFinalizer) handle() (ctrl.Result, error) {
 	}
 
 	if !isTerminating {
-		updater.setProvisionState(Terminating, "")
+		updater.setReconcileState(Terminating, "")
 	}
 	if removeFinalizer {
 		updater.removeFinalizer(r.FinalizerName)

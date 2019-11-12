@@ -58,7 +58,7 @@ const (
 	VerifyResultMissing          VerifyResult = "Missing"
 	VerifyResultRecreateRequired VerifyResult = "RecreateRequired"
 	VerifyResultUpdateRequired   VerifyResult = "UpdateRequired"
-	VerifyResultProvisioning     VerifyResult = "Provisioning"
+	VerifyResultInProgress       VerifyResult = "InProgress"
 	VerifyResultDeleting         VerifyResult = "Deleting"
 	VerifyResultReady            VerifyResult = "Ready"
 	VerifyResultError            VerifyResult = "Error"
@@ -78,7 +78,7 @@ func (r VerifyResult) error() bool            { return r == VerifyResultError }
 func (r VerifyResult) missing() bool          { return r == VerifyResultMissing }
 func (r VerifyResult) recreateRequired() bool { return r == VerifyResultRecreateRequired }
 func (r VerifyResult) updateRequired() bool   { return r == VerifyResultUpdateRequired }
-func (r VerifyResult) provisioning() bool     { return r == VerifyResultProvisioning }
+func (r VerifyResult) inProgress() bool       { return r == VerifyResultInProgress }
 func (r VerifyResult) deleting() bool         { return r == VerifyResultDeleting }
 func (r VerifyResult) ready() bool            { return r == VerifyResultReady }
 func (r VerifyResult) exists() bool           { return !r.error() && !r.missing() }
@@ -128,7 +128,7 @@ var (
 	VerifyMissing          = VerifyResponse{Result: VerifyResultMissing}
 	VerifyRecreateRequired = VerifyResponse{Result: VerifyResultRecreateRequired}
 	VerifyUpdateRequired   = VerifyResponse{Result: VerifyResultUpdateRequired}
-	VerifyProvisioning     = VerifyResponse{Result: VerifyResultProvisioning}
+	VerifyInProgress       = VerifyResponse{Result: VerifyResultInProgress}
 	VerifyDeleting         = VerifyResponse{Result: VerifyResultDeleting}
 	VerifyReady            = VerifyResponse{Result: VerifyResultReady}
 )

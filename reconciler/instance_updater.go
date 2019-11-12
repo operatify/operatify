@@ -51,7 +51,7 @@ func (updater *instanceUpdater) setStatusPayload(statusPayload interface{}) {
 	updater.statusUpdates = append(updater.statusUpdates, updateFunc)
 }
 
-func (updater *instanceUpdater) setProvisionState(state ProvisionState, message string) {
+func (updater *instanceUpdater) setReconcileState(state ReconcileState, message string) {
 	updateFunc := func(s *Status) {
 		s.State = state
 		s.Message = message

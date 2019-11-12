@@ -25,14 +25,19 @@ func getObject(key types.NamespacedName) (*v1alpha1.A, error) {
 }
 
 func nameAndSpec(aId string) (types.NamespacedName, *v1alpha1.A) {
+	return nameAndSpecWithAnnotations(aId, nil)
+}
+
+func nameAndSpecWithAnnotations(aId string, annotations map[string]string) (types.NamespacedName, *v1alpha1.A) {
 	key := types.NamespacedName{
 		Name:      aId,
 		Namespace: "default",
 	}
 	spec := &v1alpha1.A{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      key.Name,
-			Namespace: key.Namespace,
+			Name:        key.Name,
+			Namespace:   key.Namespace,
+			Annotations: annotations,
 		},
 		Spec: v1alpha1.ASpec{Id: aId},
 	}
@@ -40,11 +45,11 @@ func nameAndSpec(aId string) (types.NamespacedName, *v1alpha1.A) {
 	return key, spec
 }
 
-func waitUntilProvisionState(key types.NamespacedName, state reconciler.ProvisionState) {
-	Eventually(func() bool {
+func waitUntilReconcileState(key types.NamespacedName, state reconciler.ReconcileState) {
+	Eventually(func() reconciler.ReconcileState {
 		f, _ := getObject(key)
-		return f.Status.State == string(state)
-	}, timeout, interval).Should(BeTrue())
+		return reconciler.ReconcileState(f.Status.State)
+	}, timeout, interval).Should(Equal(state))
 }
 
 func waitUntilObjectMissing(key types.NamespacedName) {

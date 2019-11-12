@@ -32,7 +32,8 @@ func GetStatus(instance runtime.Object) (*reconciler.Status, error) {
 	status := x.Status
 
 	return &reconciler.Status{
-		State: reconciler.ProvisionState(status.State),
+		State:   reconciler.ReconcileState(status.State),
+		Message: status.Message,
 	}, nil
 }
 
@@ -42,6 +43,7 @@ func updateStatus(instance runtime.Object, status *reconciler.Status) error {
 		return err
 	}
 	x.Status.State = string(status.State)
+	x.Status.Message = status.Message
 	return nil
 }
 

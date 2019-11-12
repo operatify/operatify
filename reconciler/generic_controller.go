@@ -30,23 +30,23 @@ import (
 
 // GenericController is a generic implementation of a Kubebuilder controller
 type GenericController struct {
-	Parameters           ReconcileParameters
-	ResourceKind         string
-	KubeClient           client.Client
-	Log                  logr.Logger
-	Recorder             record.EventRecorder
-	Scheme               *runtime.Scheme
-	ResourceManager      ResourceManager
-	DefinitionManager    DefinitionManager
-	FinalizerName        string
-	AnnotationBaseName   string
-	PostProvisionFactory func(*GenericController) PostProvisionHandler
+	Parameters         ReconcileParameters
+	ResourceKind       string
+	KubeClient         client.Client
+	Log                logr.Logger
+	Recorder           record.EventRecorder
+	Scheme             *runtime.Scheme
+	ResourceManager    ResourceManager
+	DefinitionManager  DefinitionManager
+	FinalizerName      string
+	AnnotationBaseName string
+	CompletionFactory  func(*GenericController) CompletionHandler
 }
 
 // A handler that is invoked after the resource has been successfully created
-// and it has been verified to be ready for consumption (ProvisionState=Success)
+// and it has been verified to be ready for consumption (ReconcileState=Success)
 // This is typically used for example to create secrets with authentication information
-type PostProvisionHandler interface {
+type CompletionHandler interface {
 	Run(ctx context.Context, r runtime.Object) error
 }
 
@@ -67,19 +67,19 @@ func CreateGenericController(
 	defMgr DefinitionManager,
 	finalizerName string,
 	annotationBaseName string,
-	ppFactory func(*GenericController) PostProvisionHandler) (*GenericController, error) {
+	completionFactory func(*GenericController) CompletionHandler) (*GenericController, error) {
 	gc := &GenericController{
-		Parameters:           parameters,
-		ResourceKind:         resourceKind,
-		KubeClient:           kubeClient,
-		Log:                  logger,
-		Recorder:             recorder,
-		Scheme:               scheme,
-		ResourceManager:      resourceManager,
-		DefinitionManager:    defMgr,
-		FinalizerName:        finalizerName,
-		AnnotationBaseName:   annotationBaseName,
-		PostProvisionFactory: ppFactory,
+		Parameters:         parameters,
+		ResourceKind:       resourceKind,
+		KubeClient:         kubeClient,
+		Log:                logger,
+		Recorder:           recorder,
+		Scheme:             scheme,
+		ResourceManager:    resourceManager,
+		DefinitionManager:  defMgr,
+		FinalizerName:      finalizerName,
+		AnnotationBaseName: annotationBaseName,
+		CompletionFactory:  completionFactory,
 	}
 	if err := gc.validate(); err != nil {
 		return nil, err

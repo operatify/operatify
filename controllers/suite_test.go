@@ -21,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/szoio/resource-operator-factory/controllers/shared"
+
 	"github.com/szoio/resource-operator-factory/controllers/a"
 	"github.com/szoio/resource-operator-factory/controllers/manager"
 	"github.com/szoio/resource-operator-factory/reconciler"
@@ -48,6 +50,8 @@ var testEnv *envtest.Environment
 
 const timeout = time.Second * 5
 const interval = time.Millisecond * 500
+
+var accessPermissionAnnotation = shared.AnnotationBaseName + reconciler.AccessPermissionAnnotation
 
 var resourceManager = manager.CreateManager()
 

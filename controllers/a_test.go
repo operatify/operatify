@@ -12,14 +12,6 @@ import (
 
 var _ = Describe("Test Reconciler", func() {
 
-	BeforeEach(func() {
-		// Add any setup steps that needs to be executed before each test
-	})
-
-	AfterEach(func() {
-		// Add any teardown steps that needs to be executed after each test
-	})
-
 	Context("Create and Delete", func() {
 		It("should create asynchronously and delete asynchronously", func() {
 			aId := "a-" + RandomString(10)
@@ -27,11 +19,11 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilProvisionState(key, reconciler.Succeeded)
+			waitUntilReconcileState(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultInProgress,
 				reconciler.VerifyResultReady,
 			}))
 
@@ -44,7 +36,7 @@ var _ = Describe("Test Reconciler", func() {
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultInProgress,
 				reconciler.VerifyResultReady,
 				reconciler.VerifyResultDeleting,
 				reconciler.VerifyResultMissing,
@@ -63,7 +55,7 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilProvisionState(key, reconciler.Succeeded)
+			waitUntilReconcileState(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -91,11 +83,11 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilProvisionState(key, reconciler.Succeeded)
+			waitUntilReconcileState(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultInProgress,
 				reconciler.VerifyResultReady,
 			}))
 
@@ -116,7 +108,7 @@ var _ = Describe("Test Reconciler", func() {
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultInProgress,
 				reconciler.VerifyResultReady,
 				reconciler.VerifyResultMissing,
 			}))
@@ -130,7 +122,7 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
-			waitUntilProvisionState(key, reconciler.Succeeded)
+			waitUntilReconcileState(key, reconciler.Succeeded)
 
 			// tell it update is required (ony for the next verify)
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -148,7 +140,7 @@ var _ = Describe("Test Reconciler", func() {
 			Eventually(func() bool {
 				record := resourceManager.GetRecord(aId)
 				return reflect.DeepEqual(record.States, []reconciler.VerifyResult{
-					reconciler.VerifyResultProvisioning,
+					reconciler.VerifyResultInProgress,
 					reconciler.VerifyResultReady,
 					reconciler.VerifyResultUpdateRequired,
 					reconciler.VerifyResultReady,
@@ -168,7 +160,7 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
-			waitUntilProvisionState(key, reconciler.Succeeded)
+			waitUntilReconcileState(key, reconciler.Succeeded)
 
 			// tell it update is required (ony for the next verify)
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -187,15 +179,15 @@ var _ = Describe("Test Reconciler", func() {
 			toUpdate.Spec.IntData = 1
 			toUpdate.Spec.StringData = "Updated"
 			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
-			waitUntilProvisionState(key, reconciler.Succeeded)
+			waitUntilReconcileState(key, reconciler.Succeeded)
 
 			Eventually(func() bool {
 				record := resourceManager.GetRecord(aId)
 				return reflect.DeepEqual(record.States, []reconciler.VerifyResult{
-					reconciler.VerifyResultProvisioning,
+					reconciler.VerifyResultInProgress,
 					reconciler.VerifyResultReady,
 					reconciler.VerifyResultUpdateRequired,
-					reconciler.VerifyResultProvisioning,
+					reconciler.VerifyResultInProgress,
 					reconciler.VerifyResultReady,
 				})
 			}, timeout, interval).Should(BeTrue())
@@ -222,7 +214,7 @@ var _ = Describe("Test Reconciler", func() {
 			// Create
 			By("Expecting to create successfully")
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilProvisionState(key, reconciler.Failed)
+			waitUntilReconcileState(key, reconciler.Failed)
 
 			By("Expecting correct state transitions")
 			record := resourceManager.GetRecord(aId)
@@ -250,11 +242,11 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilProvisionState(key, reconciler.Failed)
+			waitUntilReconcileState(key, reconciler.Failed)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultInProgress,
 				reconciler.VerifyResultError,
 			}))
 
@@ -271,7 +263,7 @@ var _ = Describe("Test Reconciler", func() {
 			// TODO: should it this?
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
-				reconciler.VerifyResultProvisioning,
+				reconciler.VerifyResultInProgress,
 				reconciler.VerifyResultError,
 				reconciler.VerifyResultDeleting,
 				reconciler.VerifyResultMissing,
@@ -291,7 +283,7 @@ var _ = Describe("Test Reconciler", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilProvisionState(key, reconciler.Failed)
+			waitUntilReconcileState(key, reconciler.Failed)
 
 			// wait until Ready is received
 			Eventually(func() bool {
@@ -323,4 +315,92 @@ var _ = Describe("Test Reconciler", func() {
 		})
 	})
 
+	Context("Handle permissions", func() {
+		It("should create if create permission is present", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpecWithAnnotations(aId, map[string]string{accessPermissionAnnotation: "C"})
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
+			waitUntilReconcileState(key, reconciler.Succeeded)
+
+			record := resourceManager.GetRecord(aId)
+			Expect(record.Events).To(ContainElement(manager.EventCreate))
+		})
+
+		It("should stop creating if create permission is missing", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpecWithAnnotations(aId, map[string]string{accessPermissionAnnotation: "none"})
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
+			waitUntilReconcileState(key, reconciler.Failed)
+
+			record := resourceManager.GetRecord(aId)
+			Expect(record.Events).To(Not(ContainElement(manager.EventCreate)))
+
+			object, _ := getObject(key)
+			Expect(object.Status.Message).To(HavePrefix("permission to create Azure resource is not set"))
+		})
+
+		It("should update if update if permission is present", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpecWithAnnotations(aId, map[string]string{accessPermissionAnnotation: "CU"})
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
+			waitUntilReconcileState(key, reconciler.Succeeded)
+
+			// tell it update is required (ony for the next verify)
+			resourceManager.AddBehaviour(aId, manager.Behaviour{
+				Event:     manager.EventGet,
+				Operation: manager.VerifyNeedsUpdate.AsOperation(),
+				From:      resourceManager.CountEvents(aId, manager.EventGet),
+				Count:     1,
+			})
+
+			toUpdate, _ := getObject(key)
+			toUpdate.Spec.StringData = "Updated"
+			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
+
+			Eventually(func() []reconciler.VerifyResult {
+				return resourceManager.GetRecord(aId).States
+			}, timeout, interval).Should(ContainElement(reconciler.VerifyResultUpdateRequired))
+			waitUntilReconcileState(key, reconciler.Succeeded)
+
+			updated, _ := getObject(key)
+			Expect(updated.Spec.StringData).To(Equal("Updated"))
+		})
+
+		It("should fail to update if update if permission is absent", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpecWithAnnotations(aId, map[string]string{accessPermissionAnnotation: "C"})
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
+			waitUntilReconcileState(key, reconciler.Succeeded)
+
+			// tell it update is required (ony for the next verify)
+			resourceManager.AddBehaviour(aId, manager.Behaviour{
+				Event:     manager.EventGet,
+				Operation: manager.VerifyNeedsUpdate.AsOperation(),
+				From:      resourceManager.CountEvents(aId, manager.EventGet),
+				Count:     1,
+			})
+
+			toUpdate, _ := getObject(key)
+			toUpdate.Spec.StringData = "Updated"
+			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
+
+			Eventually(func() []reconciler.VerifyResult {
+				return resourceManager.GetRecord(aId).States
+			}, timeout, interval).Should(ContainElement(reconciler.VerifyResultUpdateRequired))
+
+			waitUntilReconcileState(key, reconciler.Failed)
+
+			updated, _ := getObject(key)
+			Expect(updated.Status.Message).To(HavePrefix("permission to update Azure resource is not set"))
+		})
+
+	})
 })

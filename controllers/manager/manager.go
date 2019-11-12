@@ -206,7 +206,7 @@ type DeleteOperation func(m *Manager, id string) (reconciler.DeleteResult, error
 
 // Include operations below
 var CreateAsync ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
-	m.Set(id, reconciler.VerifyResultProvisioning)
+	m.Set(id, reconciler.VerifyResultInProgress)
 	go m.asyncUpdate(id, reconciler.VerifyResultReady, randomDelay(startMillis, endMillis))
 	return reconciler.ApplyResultAwaitingVerification, nil
 }
@@ -254,7 +254,7 @@ var VerifyNeedsUpdate GetOperation = func(m *Manager, id string) (reconciler.Ver
 }
 
 var CreateCompleteFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
-	m.Set(id, reconciler.VerifyResultProvisioning)
+	m.Set(id, reconciler.VerifyResultInProgress)
 	go m.asyncUpdate(id, reconciler.VerifyResultError, randomDelay(startMillis, endMillis))
 	return reconciler.ApplyResultAwaitingVerification, nil
 }
