@@ -402,5 +402,49 @@ var _ = Describe("Test Reconciler", func() {
 			Expect(updated.Status.Message).To(HavePrefix("permission to update Azure resource is not set"))
 		})
 
+		It("should delete if delete permission present", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpecWithAnnotations(aId, map[string]string{accessPermissionAnnotation: "CD"})
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
+			waitUntilReconcileState(key, reconciler.Succeeded)
+
+			record := resourceManager.GetRecord(aId)
+			Expect(record.States[len(record.States)-1]).To(Equal(reconciler.VerifyResultReady))
+
+			By("Expecting to delete successfully")
+			Expect(deleteObject(key)).To(Succeed())
+
+			By("Expecting delete to finish")
+			waitUntilObjectMissing(key)
+
+			By("Underlying resource should be deleted")
+			record = resourceManager.GetRecord(aId)
+			Expect(record.States[len(record.States)-1]).To(Equal(reconciler.VerifyResultMissing))
+		})
+
+		It("should leave the underlying resource alone when deleting if delete permission is not present", func() {
+			aId := "a-" + RandomString(10)
+			key, created := nameAndSpecWithAnnotations(aId, map[string]string{accessPermissionAnnotation: "C"})
+
+			// Create
+			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
+			waitUntilReconcileState(key, reconciler.Succeeded)
+
+			record := resourceManager.GetRecord(aId)
+			Expect(record.States[len(record.States)-1]).To(Equal(reconciler.VerifyResultReady))
+
+			By("Expecting to delete successfully")
+			Expect(deleteObject(key)).To(Succeed())
+
+			By("Expecting delete to finish")
+			waitUntilObjectMissing(key)
+
+			By("Underlying resource should be untouched")
+			record = resourceManager.GetRecord(aId)
+			Expect(record.States[len(record.States)-1]).To(Equal(reconciler.VerifyResultReady))
+		})
+
 	})
 })
