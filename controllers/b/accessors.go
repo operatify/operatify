@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package a
+package b
 
 import (
 	"fmt"
@@ -47,8 +47,8 @@ func updateStatus(instance runtime.Object, status *reconciler.Status) error {
 	return nil
 }
 
-func convertInstance(obj runtime.Object) (*api.A, error) {
-	local, ok := obj.(*api.A)
+func convertInstance(obj runtime.Object) (*api.B, error) {
+	local, ok := obj.(*api.B)
 	if !ok {
 		return nil, fmt.Errorf("failed type assertion on kind: A")
 	}
@@ -61,12 +61,4 @@ func getSpec(object runtime.Object) (*api.Spec, error) {
 		return nil, err
 	}
 	return &instance.Spec.Spec, nil
-}
-
-func GetSuccess(object runtime.Object) (bool, error) {
-	instance, err := GetStatus(object)
-	if err != nil {
-		return false, err
-	}
-	return instance.IsSucceeded(), nil
 }

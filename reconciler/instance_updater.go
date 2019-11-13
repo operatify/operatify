@@ -75,12 +75,14 @@ func (updater *instanceUpdater) setOwnerReferences(owners []runtime.Object) {
 	updateFunc := func(s metav1.Object) {
 		references := make([]metav1.OwnerReference, len(owners))
 		for i, o := range owners {
+			controller := true
 			meta, _ := apimeta.Accessor(o)
 			references[i] = metav1.OwnerReference{
 				APIVersion: "v1",
 				Kind:       o.GetObjectKind().GroupVersionKind().Kind,
 				Name:       meta.GetName(),
 				UID:        meta.GetUID(),
+				Controller: &controller,
 			}
 		}
 		s.SetOwnerReferences(references)

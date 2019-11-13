@@ -15,11 +15,11 @@ var _ = Describe("Test Create and Delete", func() {
 
 		It("should create asynchronously and delete asynchronously", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilReconcileState(key, reconciler.Succeeded)
+			waitUntilReconcileStateA(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -29,10 +29,10 @@ var _ = Describe("Test Create and Delete", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Expect(deleteObject(key)).To(Succeed())
+			Expect(deleteObjectA(key)).To(Succeed())
 
 			By("Expecting to delete finish")
-			waitUntilObjectMissing(key)
+			waitUntilObjectMissingA(key)
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -45,7 +45,7 @@ var _ = Describe("Test Create and Delete", func() {
 
 		It("should create synchronously and delete asynchronously", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// tell it to run the create synchronously
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -55,7 +55,7 @@ var _ = Describe("Test Create and Delete", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilReconcileState(key, reconciler.Succeeded)
+			waitUntilReconcileStateA(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -64,10 +64,10 @@ var _ = Describe("Test Create and Delete", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Expect(deleteObject(key)).To(Succeed())
+			Expect(deleteObjectA(key)).To(Succeed())
 
 			By("Expecting to delete finish")
-			waitUntilObjectMissing(key)
+			waitUntilObjectMissingA(key)
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -79,11 +79,11 @@ var _ = Describe("Test Create and Delete", func() {
 
 		It("should create asynchronously and delete synchronously", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilReconcileState(key, reconciler.Succeeded)
+			waitUntilReconcileStateA(key, reconciler.Succeeded)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -100,11 +100,11 @@ var _ = Describe("Test Create and Delete", func() {
 			// Delete
 			By("Expecting to delete successfully")
 			Eventually(func() error {
-				return deleteObject(key)
+				return deleteObjectA(key)
 			}, timeout, interval).Should(Succeed())
 
 			By("Expecting to delete finish")
-			waitUntilObjectMissing(key)
+			waitUntilObjectMissingA(key)
 
 			record = resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{

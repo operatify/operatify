@@ -221,6 +221,11 @@ var CreateFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyRes
 	return reconciler.ApplyResultError, fmt.Errorf("error creating resource")
 }
 
+var UpdateFail ApplyOperation = func(m *Manager, id string) (reconciler.ApplyResult, error) {
+	m.Set(id, reconciler.VerifyResultError)
+	return reconciler.ApplyResultError, fmt.Errorf("error updating resource")
+}
+
 var UpdateSync = CreateSync
 var UpdateAsync = CreateAsync
 

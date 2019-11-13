@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package a
+package b
 
 import (
 	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
@@ -35,11 +35,11 @@ type ControllerFactory struct {
 	Manager                *manager.Manager
 }
 
-// +kubebuilder:rbac:groups=test.stephenzoio.com,resources=as,verbs=get;list;watch;Create;update;patch;delete
-// +kubebuilder:rbac:groups=test.stephenzoio.com,resources=as/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=test.stephenzoio.com,resources=bs,verbs=get;list;watch;Create;update;patch;delete
+// +kubebuilder:rbac:groups=test.stephenzoio.com,resources=bs/status,verbs=get;update;patch
 
-const ResourceKind = "A"
-const FinalizerName = "a.finalizers.com"
+const ResourceKind = "B"
+const FinalizerName = "b.finalizers.com"
 
 func (factory *ControllerFactory) SetupWithManager(mgr ctrl.Manager, parameters reconciler.ReconcileParameters, log *logr.Logger) error {
 	if log == nil {
@@ -54,7 +54,7 @@ func (factory *ControllerFactory) SetupWithManager(mgr ctrl.Manager, parameters 
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.A{}).
+		For(&api.B{}).
 		Complete(gc)
 }
 

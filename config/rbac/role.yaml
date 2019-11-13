@@ -26,3 +26,23 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - test.stephenzoio.com
+  resources:
+  - bs
+  verbs:
+  - Create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - test.stephenzoio.com
+  resources:
+  - bs/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -21,6 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/szoio/resource-operator-factory/controllers/b"
+
 	"github.com/szoio/resource-operator-factory/controllers/shared"
 
 	"github.com/szoio/resource-operator-factory/controllers/a"
@@ -31,6 +33,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
+	testv1alpha1 "github.com/szoio/resource-operator-factory/api/v1alpha1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -49,7 +52,7 @@ var k8sClient client.Client
 var testEnv *envtest.Environment
 
 const timeout = time.Second * 5
-const interval = time.Millisecond * 500
+const interval = time.Millisecond * 100
 
 var accessPermissionAnnotation = shared.AnnotationBaseName + reconciler.AccessPermissionAnnotation
 
@@ -79,6 +82,9 @@ var _ = BeforeSuite(func(done Done) {
 	err = api.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = testv1alpha1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	// +kubebuilder:scaffold:scheme
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme.Scheme,
@@ -89,16 +95,25 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
-	controllerParams := reconciler.ReconcileParameters{
-		RequeueAfter: 100,
-	}
-
-	// Create a test controller
+	// Create test controllers
 	err = (&a.ControllerFactory{
-		ClientCreator: a.CreateResourceManager,
-		Scheme:        scheme.Scheme,
-		Manager:       resourceManager,
-	}).SetupWithManager(k8sManager, controllerParams, nil)
+		ResourceManagerCreator: a.CreateResourceManager,
+		Scheme:                 scheme.Scheme,
+		Manager:                resourceManager,
+	}).SetupWithManager(k8sManager, reconciler.ReconcileParameters{
+		RequeueAfter: 100,
+	}, nil)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&b.ControllerFactory{
+		ResourceManagerCreator: b.CreateResourceManager,
+		Scheme:                 scheme.Scheme,
+		Manager:                resourceManager,
+	}).SetupWithManager(k8sManager, reconciler.ReconcileParameters{
+		RequeueAfter:        100,
+		RequeueAfterSuccess: 1000,
+		RequeueAfterFailure: 1000,
+	}, nil)
 	Expect(err).ToNot(HaveOccurred())
 
 	go func() {

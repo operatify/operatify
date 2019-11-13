@@ -15,7 +15,7 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 		It("should fail if fails to create", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// tell it to fail to create
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -26,7 +26,7 @@ var _ = Describe("Test Failure Scenarios", func() {
 			// Create
 			By("Expecting to create successfully")
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilReconcileState(key, reconciler.Failed)
+			waitUntilReconcileStateA(key, reconciler.Failed)
 
 			By("Expecting correct state transitions")
 			record := resourceManager.GetRecord(aId)
@@ -36,15 +36,15 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Expect(deleteObject(key)).Should(Succeed())
+			Expect(deleteObjectA(key)).Should(Succeed())
 
 			By("Expecting to delete finish")
-			waitUntilObjectMissing(key)
+			waitUntilObjectMissingA(key)
 		})
 
 		It("should fail if fails complete async creation", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// tell it to fail to create
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -54,7 +54,7 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilReconcileState(key, reconciler.Failed)
+			waitUntilReconcileStateA(key, reconciler.Failed)
 
 			record := resourceManager.GetRecord(aId)
 			Expect(record.States).Should(Equal([]reconciler.VerifyResult{
@@ -67,10 +67,10 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Expect(deleteObject(key)).Should(Succeed())
+			Expect(deleteObjectA(key)).Should(Succeed())
 
 			By("Expecting to delete finish")
-			waitUntilObjectMissing(key)
+			waitUntilObjectMissingA(key)
 
 			// TODO: should it this?
 			record = resourceManager.GetRecord(aId)
@@ -84,7 +84,7 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 		It("should fail if fails to verify creation after completing async creation", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// tell it to fail verification
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -95,7 +95,7 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).Should(Succeed())
-			waitUntilReconcileState(key, reconciler.Failed)
+			waitUntilReconcileStateA(key, reconciler.Failed)
 
 			// wait until Ready is received
 			Eventually(func() bool {
@@ -114,16 +114,24 @@ var _ = Describe("Test Failure Scenarios", func() {
 
 			// Delete
 			By("Expecting to delete successfully")
-			Expect(deleteObject(key)).Should(Succeed())
+			Expect(deleteObjectA(key)).Should(Succeed())
 
 			By("Expecting to delete finish")
-			waitUntilObjectMissing(key)
+			waitUntilObjectMissingA(key)
 
 			record := resourceManager.GetRecord(aId)
 			expectedStates := append(recordPreStates,
 				reconciler.VerifyResultDeleting,
 				reconciler.VerifyResultMissing)
 			Expect(record.States).Should(Equal(expectedStates))
+		})
+
+		It("should fail if fails to update", func() {
+			// TODO:
+		})
+
+		It("should fail if fails to delete and recreate", func() {
+			// TODO:
 		})
 	})
 })

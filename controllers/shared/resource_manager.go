@@ -13,10 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package a
+package shared
 
 import (
 	"context"
+
+	"github.com/szoio/resource-operator-factory/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/go-logr/logr"
 	"github.com/szoio/resource-operator-factory/controllers/manager"
@@ -24,68 +27,68 @@ import (
 	"k8s.io/client-go/tools/record"
 )
 
+type SpecGetter func(object runtime.Object) (*v1alpha1.Spec, error)
+
 type ResourceManager struct {
-	Logger   logr.Logger
-	Recorder record.EventRecorder
-	Manager  *manager.Manager
+	Logger     logr.Logger
+	Recorder   record.EventRecorder
+	Manager    *manager.Manager
+	SpecGetter SpecGetter
 }
 
-func CreateResourceManager(logger logr.Logger, recorder record.EventRecorder, manager *manager.Manager) ResourceManager {
+func CreateResourceManager(logger logr.Logger, recorder record.EventRecorder, manager *manager.Manager, specGetter SpecGetter) ResourceManager {
 	return ResourceManager{
-		Logger:   logger,
-		Recorder: recorder,
-		Manager:  manager,
+		Logger:     logger,
+		Recorder:   recorder,
+		Manager:    manager,
+		SpecGetter: specGetter,
 	}
 }
 
 func (r *ResourceManager) Create(ctx context.Context, s reconciler.ResourceSpec) (reconciler.ApplyResponse, error) {
-	instance, err := convertInstance(s.Instance)
+	spec, err := r.SpecGetter(s.Instance)
 	if err != nil {
 		return reconciler.ApplyError, err
 	}
 
-	id := instance.Spec.Id
-	result, err := r.Manager.Create(id)
+	result, err := r.Manager.Create(spec.Id)
 	return reconciler.ApplyResponse{
 		Result: result,
-		Status: nil,
+		Status: &spec,
 	}, err
 }
 
 func (r *ResourceManager) Update(ctx context.Context, s reconciler.ResourceSpec) (reconciler.ApplyResponse, error) {
-	instance, err := convertInstance(s.Instance)
+	spec, err := r.SpecGetter(s.Instance)
 	if err != nil {
 		return reconciler.ApplyError, err
 	}
 
-	id := instance.Spec.Id
-	result, err := r.Manager.Update(id)
+	result, err := r.Manager.Update(spec.Id)
 	return reconciler.ApplyResponse{
 		Result: result,
-		Status: &instance.Spec,
+		Status: &spec,
 	}, err
 }
 
 func (r *ResourceManager) Verify(ctx context.Context, s reconciler.ResourceSpec) (reconciler.VerifyResponse, error) {
-	instance, err := convertInstance(s.Instance)
+	spec, err := r.SpecGetter(s.Instance)
 	if err != nil {
 		return reconciler.VerifyError, err
 	}
 
-	id := instance.Spec.Id
-	result, err := r.Manager.Get(id)
+	result, err := r.Manager.Get(spec.Id)
 	return reconciler.VerifyResponse{
 		Result: result,
-		Status: &instance.Spec,
+		Status: &spec,
 	}, err
 }
 
 func (r *ResourceManager) Delete(ctx context.Context, s reconciler.ResourceSpec) (reconciler.DeleteResult, error) {
-	instance, err := convertInstance(s.Instance)
+	spec, err := r.SpecGetter(s.Instance)
 	if err != nil {
 		return reconciler.DeleteError, err
 	}
 
-	id := instance.Spec.Id
-	return r.Manager.Delete(id)
+	return r.Manager.Delete(spec.Id)
 }

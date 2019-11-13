@@ -15,11 +15,11 @@ var _ = Describe("Test Update and Recreate", func() {
 
 		It("should update synchronously", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
-			waitUntilReconcileState(key, reconciler.Succeeded)
+			waitUntilReconcileStateA(key, reconciler.Succeeded)
 
 			// tell it update is required (ony for the next verify)
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -29,7 +29,7 @@ var _ = Describe("Test Update and Recreate", func() {
 				Count:     1,
 			})
 
-			toUpdate, _ := getObject(key)
+			toUpdate, _ := getObjectA(key)
 			toUpdate.Spec.IntData = 1
 			toUpdate.Spec.StringData = "Updated"
 			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
@@ -47,17 +47,17 @@ var _ = Describe("Test Update and Recreate", func() {
 			Expect(resourceManager.CountEvents(aId, manager.EventCreate)).To(Equal(1))
 			Expect(resourceManager.CountEvents(aId, manager.EventUpdate)).To(Equal(1))
 
-			updated, _ := getObject(key)
+			updated, _ := getObjectA(key)
 			Expect(updated.Spec.StringData).To(Equal("Updated"))
 		})
 
 		It("should update asynchronously", func() {
 			aId := "a-" + RandomString(10)
-			key, created := nameAndSpec(aId)
+			key, created := nameAndSpecA(aId)
 
 			// Create
 			Expect(k8sClient.Create(context.Background(), created)).To(Succeed())
-			waitUntilReconcileState(key, reconciler.Succeeded)
+			waitUntilReconcileStateA(key, reconciler.Succeeded)
 
 			// tell it update is required (ony for the next verify)
 			resourceManager.AddBehaviour(aId, manager.Behaviour{
@@ -72,11 +72,11 @@ var _ = Describe("Test Update and Recreate", func() {
 				Operation: manager.UpdateAsync.AsOperation(),
 			})
 
-			toUpdate, _ := getObject(key)
+			toUpdate, _ := getObjectA(key)
 			toUpdate.Spec.IntData = 1
 			toUpdate.Spec.StringData = "Updated"
 			Expect(k8sClient.Update(context.Background(), toUpdate)).To(Succeed())
-			waitUntilReconcileState(key, reconciler.Succeeded)
+			waitUntilReconcileStateA(key, reconciler.Succeeded)
 
 			Eventually(func() []reconciler.VerifyResult {
 				record := resourceManager.GetRecord(aId)
@@ -92,7 +92,7 @@ var _ = Describe("Test Update and Recreate", func() {
 			Expect(resourceManager.CountEvents(aId, manager.EventCreate)).To(Equal(1))
 			Expect(resourceManager.CountEvents(aId, manager.EventUpdate)).To(Equal(1))
 
-			updated, _ := getObject(key)
+			updated, _ := getObjectA(key)
 			Expect(updated.Spec.StringData).To(Equal("Updated"))
 		})
 	})

@@ -22,31 +22,34 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ASpec defines the desired state of A
-type ASpec struct {
+// BSpec defines the desired state of B
+type BSpec struct {
 	Spec `json:",inline"`
+	// some additional fields for owner and dependencies
+	Owner        string   `json:"owner,omitempty"`
+	Dependencies []string `json:"dependencies,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// A is the Schema for the as API
-type A struct {
+// B is the Schema for the bs API
+type B struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ASpec  `json:"spec,omitempty"`
+	Spec   BSpec  `json:"spec,omitempty"`
 	Status Status `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// AList contains a list of A
-type AList struct {
+// BList contains a list of B
+type BList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []A `json:"items"`
+	Items           []B `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&A{}, &AList{})
+	SchemeBuilder.Register(&B{}, &BList{})
 }

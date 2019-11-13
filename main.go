@@ -24,6 +24,7 @@ import (
 	"github.com/szoio/resource-operator-factory/reconciler"
 
 	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
+	testv1alpha1 "github.com/szoio/resource-operator-factory/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -41,6 +42,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = api.AddToScheme(scheme)
+	_ = testv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -70,9 +72,9 @@ func main() {
 	}
 	store := manager.CreateManager()
 	if err = (&a.ControllerFactory{
-		ClientCreator: a.CreateResourceManager,
-		Scheme:        scheme,
-		Manager:       store,
+		ResourceManagerCreator: a.CreateResourceManager,
+		Scheme:                 scheme,
+		Manager:                store,
 	}).SetupWithManager(mgr, controllerParams, nil); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "A")
 		os.Exit(1)

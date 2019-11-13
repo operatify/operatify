@@ -10,25 +10,25 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func deleteObject(key types.NamespacedName) error {
-	f, err := getObject(key)
+func deleteObjectA(key types.NamespacedName) error {
+	f, err := getObjectA(key)
 	if err != nil {
 		return err
 	}
 	return k8sClient.Delete(context.Background(), f)
 }
 
-func getObject(key types.NamespacedName) (*v1alpha1.A, error) {
+func getObjectA(key types.NamespacedName) (*v1alpha1.A, error) {
 	f := &v1alpha1.A{}
 	err := k8sClient.Get(context.Background(), key, f)
 	return f, err
 }
 
-func nameAndSpec(aId string) (types.NamespacedName, *v1alpha1.A) {
-	return nameAndSpecWithAnnotations(aId, nil)
+func nameAndSpecA(aId string) (types.NamespacedName, *v1alpha1.A) {
+	return nameAndSpecWithAnnotationsA(aId, nil)
 }
 
-func nameAndSpecWithAnnotations(aId string, annotations map[string]string) (types.NamespacedName, *v1alpha1.A) {
+func nameAndSpecWithAnnotationsA(aId string, annotations map[string]string) (types.NamespacedName, *v1alpha1.A) {
 	key := types.NamespacedName{
 		Name:      aId,
 		Namespace: "default",
@@ -39,22 +39,26 @@ func nameAndSpecWithAnnotations(aId string, annotations map[string]string) (type
 			Namespace:   key.Namespace,
 			Annotations: annotations,
 		},
-		Spec: v1alpha1.ASpec{Id: aId},
+		Spec: v1alpha1.ASpec{
+			Spec: v1alpha1.Spec{
+				Id: aId,
+			},
+		},
 	}
 
 	return key, spec
 }
 
-func waitUntilReconcileState(key types.NamespacedName, state reconciler.ReconcileState) {
+func waitUntilReconcileStateA(key types.NamespacedName, state reconciler.ReconcileState) {
 	Eventually(func() reconciler.ReconcileState {
-		f, _ := getObject(key)
+		f, _ := getObjectA(key)
 		return reconciler.ReconcileState(f.Status.State)
 	}, timeout, interval).Should(Equal(state))
 }
 
-func waitUntilObjectMissing(key types.NamespacedName) {
+func waitUntilObjectMissingA(key types.NamespacedName) {
 	Eventually(func() error {
-		_, err := getObject(key)
+		_, err := getObjectA(key)
 		return err
 	}, timeout, interval).ShouldNot(Succeed())
 }
