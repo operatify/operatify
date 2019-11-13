@@ -84,6 +84,12 @@ var _ = Describe("Test Dependencies", func() {
 
 			// expect B to return to pending state
 			waitUntilReconcileStateB(keyB, reconciler.Pending)
+
+			By("owner should delete successfully")
+			Expect(deleteObjectB(keyB)).To(Succeed())
+
+			// should still delete B even though it's in pending state
+			waitUntilObjectMissingB(keyB)
 		})
 
 		It("should do nothing until all additional dependencies are created", func() {
