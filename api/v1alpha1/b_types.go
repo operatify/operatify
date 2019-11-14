@@ -31,6 +31,8 @@ type BSpec struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 
 // B is the Schema for the bs API
 type B struct {

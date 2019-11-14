@@ -6,11 +6,21 @@ metadata:
   creationTimestamp: null
   name: as.test.stephenzoio.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.message
+    name: Message
+    type: string
   group: test.stephenzoio.com
   names:
     kind: A
+    listKind: AList
     plural: as
+    singular: a
   scope: ""
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: A is the Schema for the as API

@@ -38,6 +38,9 @@ type ControllerFactory struct {
 // +kubebuilder:rbac:groups=test.stephenzoio.com,resources=as,verbs=get;list;watch;Create;update;patch;delete
 // +kubebuilder:rbac:groups=test.stephenzoio.com,resources=as/status,verbs=get;update;patch
 
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
+
 const ResourceKind = "A"
 const FinalizerName = "a.finalizers.com"
 

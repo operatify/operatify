@@ -17,6 +17,7 @@ package main
 
 import (
 	"flag"
+	"github.com/szoio/resource-operator-factory/controllers/b"
 	"os"
 
 	"github.com/szoio/resource-operator-factory/controllers/a"
@@ -67,8 +68,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// create controllers
 	controllerParams := reconciler.ReconcileParameters{
-		RequeueAfter: 10000,
+		RequeueAfter:        5000,
+		RequeueAfterSuccess: 15000,
+		RequeueAfterFailure: 30000,
 	}
 	store := manager.CreateManager()
 	if err = (&a.ControllerFactory{
@@ -77,6 +81,15 @@ func main() {
 		Manager:                store,
 	}).SetupWithManager(mgr, controllerParams, nil); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "A")
+		os.Exit(1)
+	}
+
+	if err = (&b.ControllerFactory{
+		ResourceManagerCreator: b.CreateResourceManager,
+		Scheme:                 scheme,
+		Manager:                store,
+	}).SetupWithManager(mgr, controllerParams, nil); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "B")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

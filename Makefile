@@ -53,6 +53,9 @@ vet:
 generate: manifests
 	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths=./api/...
 
+test: vet
+	go test -v ./controllers
+
 # find or download controller-gen
 # download controller-gen if necessary
 controller-gen:

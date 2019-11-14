@@ -28,6 +28,8 @@ type ASpec struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
+// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 
 // A is the Schema for the as API
 type A struct {

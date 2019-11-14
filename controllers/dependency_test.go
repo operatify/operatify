@@ -93,7 +93,35 @@ var _ = Describe("Test Dependencies", func() {
 		})
 
 		It("should do nothing until all additional dependencies are created", func() {
-			// TODO
+			bId := "b-" + RandomString(10)
+			ownerId := "a-" + RandomString(10)
+			dependency1 := "a-" + RandomString(10)
+			dependency2 := "a-" + RandomString(10)
+
+			keyB, createdB := nameAndSpecB(bId, ownerId, []string{dependency1, dependency2})
+
+			// create B
+			Expect(k8sClient.Create(context.Background(), createdB)).Should(Succeed())
+			_, createdA0 := nameAndSpecA(ownerId)
+			_, createdA1 := nameAndSpecA(dependency1)
+			_, createdA2 := nameAndSpecA(dependency2)
+			Expect(k8sClient.Create(context.Background(), createdA0)).Should(Succeed())
+			Expect(k8sClient.Create(context.Background(), createdA1)).Should(Succeed())
+
+			// expect Pending state to be set
+			waitUntilReconcileStateB(keyB, reconciler.Pending)
+
+			// expect nothing else to happen
+			Consistently(func() reconciler.ReconcileState {
+				f, _ := getObjectB(keyB)
+				return reconciler.ReconcileState(f.Status.State)
+			}, time.Second*3, interval).Should(Equal(reconciler.Pending))
+
+			// now create final dependency
+			Expect(k8sClient.Create(context.Background(), createdA2)).Should(Succeed())
+
+			// now B should eventually succeed
+			waitUntilReconcileStateB(keyB, reconciler.Succeeded)
 		})
 	})
 })

@@ -378,7 +378,6 @@ func (r *reconcileRunner) tryUpdateInstance(ctx context.Context, count int) erro
 func (r *reconcileRunner) updateAndLog(ctx context.Context, eventType string, reason string, message string) error {
 	instance := r.instance
 	if !r.instanceUpdater.hasUpdates() {
-		r.log.WithValues("State", r.status.State).Info(fmt.Sprintf("Resource up to date. no further update necessary."))
 		return nil
 	}
 	if err := r.updateInstance(ctx); err != nil {

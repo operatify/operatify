@@ -6,11 +6,21 @@ metadata:
   creationTimestamp: null
   name: bs.test.stephenzoio.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.message
+    name: Message
+    type: string
   group: test.stephenzoio.com
   names:
     kind: B
+    listKind: BList
     plural: bs
+    singular: b
   scope: ""
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: B is the Schema for the bs API

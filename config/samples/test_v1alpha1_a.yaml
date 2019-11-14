@@ -1,7 +1,10 @@
 apiVersion: test.stephenzoio.com/v1alpha1
 kind: A
 metadata:
-  name: a-sample
+  name: foo-a-k8s
 spec:
   # Add fields here
-  foo: bar
+  id: foo-a-ManagedResource
+  stringData: "what the heck?"
+  intData: 1
+
