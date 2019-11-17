@@ -1,12 +1,12 @@
 version: '3'
 services:
   docker-in-docker:
-    image: resource-operator-factory-dev-container:0.1.0
+    image: operatify-dev-container:0.1.0
     network_mode: "host"
-    working_dir: /go/src/github.com/szoio/resource-operator-factory
+    working_dir: /go/src/github.com/szoio/operatify
     volumes:
       # Update this to wherever you want VS Code to mount the folder of your project
-      - ..:/go/src/github.com/szoio/resource-operator-factory
+      - ..:/go/src/github.com/szoio/operatify
 
       # This lets you avoid setting up Git again in th container
       - ~/.gitconfig:/root/.gitconfig

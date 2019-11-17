@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/szoio/resource-operator-factory/reconciler"
+	"github.com/szoio/operatify/reconciler"
 )
 
 type Event string

@@ -54,7 +54,7 @@ func (in *A) DeepCopyObject() runtime.Object {
 func (in *AList) DeepCopyInto(out *AList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]A, len(*in))
@@ -129,7 +129,7 @@ func (in *B) DeepCopyObject() runtime.Object {
 func (in *BList) DeepCopyInto(out *BList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]B, len(*in))

@@ -16,10 +16,10 @@ limitations under the License.
 package b
 
 import (
-	api "github.com/szoio/resource-operator-factory/api/v1alpha1"
-	"github.com/szoio/resource-operator-factory/controllers/manager"
-	"github.com/szoio/resource-operator-factory/controllers/shared"
-	"github.com/szoio/resource-operator-factory/reconciler"
+	api "github.com/szoio/operatify/api/v1alpha1"
+	"github.com/szoio/operatify/controllers/manager"
+	"github.com/szoio/operatify/controllers/shared"
+	"github.com/szoio/operatify/reconciler"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"

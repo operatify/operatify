@@ -1,6 +1,6 @@
 version: "2"
 domain: stephenzoio.com
-repo: github.com/szoio/resource-operator-factory
+repo: github.com/szoio/operatify
 resources:
 - group: test
   version: v1alpha1

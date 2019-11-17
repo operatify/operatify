@@ -28,17 +28,17 @@ type ResourceSpec struct {
 	Dependencies map[types.NamespacedName]runtime.Object
 }
 
-// ResourceManager is a common abstraction for the controller to interact with the Azure resource managers
-// The ResourceManager does not, or should not, modify the runtime.Object kubernetes object
-// it only needs to query or mutate Azure state, return the Result of the operation
+// ResourceManager is a common abstraction for the controller to interact with external resources
+// The ResourceManager cannot modify the runtime.Object kubernetes object
+// it only needs to query or mutate the external resource, return the Result of the operation
 type ResourceManager interface {
-	// Creates an Azure resource, though it doesn't verify the readiness for consumption
+	// Creates an external resource, though it doesn't verify the readiness for consumption
 	Create(context.Context, ResourceSpec) (ApplyResponse, error)
-	// Updates an Azure resource
+	// Updates an external resource
 	Update(context.Context, ResourceSpec) (ApplyResponse, error)
-	// Verifies the state of the resource in Azure
+	// Verifies the state of the external resource
 	Verify(context.Context, ResourceSpec) (VerifyResponse, error)
-	// Deletes resource in Azure
+	// Deletes external resource
 	Delete(context.Context, ResourceSpec) (DeleteResult, error)
 }
 

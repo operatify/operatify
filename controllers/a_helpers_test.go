@@ -4,8 +4,8 @@ import (
 	"context"
 
 	. "github.com/onsi/gomega"
-	"github.com/szoio/resource-operator-factory/api/v1alpha1"
-	"github.com/szoio/resource-operator-factory/reconciler"
+	"github.com/szoio/operatify/api/v1alpha1"
+	"github.com/szoio/operatify/reconciler"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

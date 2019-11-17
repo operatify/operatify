@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/szoio/resource-operator-factory/controllers/manager"
+	"github.com/szoio/operatify/controllers/manager"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/szoio/resource-operator-factory/reconciler"
+	"github.com/szoio/operatify/reconciler"
 )
 
 var _ = Describe("Test Dependencies", func() {
