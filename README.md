@@ -42,38 +42,52 @@ SUCCESS! -- 19 Passed | 0 Failed | 0 Pending | 0 Skipped
 
 Start by following the Kubebuilder Instructions [as in their tutorial](https://book.kubebuilder.io/cronjob-tutorial/cronjob-tutorial.html)
 
-Initialise the Kubebuilder project:
+1. Initialise the Kubebuilder project:
 
-```bash
-kubebuilder init --domain my.domain
-```
+    ```bash
+    kubebuilder init --domain my.domain
+    ```
 
-Then create a new API:
+2. Add the following require to your `go.mod` file (use the latest release version rather than v0.0.1 below).
 
-```bash
-kubebuilder create api --group mygroup --version v1 --kind MyResource
-```
+    ```go
+    github.com/operatify/operatify v0.1.1
+    ```
+    
+3. Add the following import where required:
 
-This will ask you if you want to:
-* create a resource - type `y`.
-* create a controller - you can do this, but you will end up deleting the code it generates. We only need the following markers, which Kubebuilder uses:
+    ```go
+    import "github.com/operatify/operatify/reconciler"
+    ```
+    
+4. Create a new API:
+
+    ```bash
+    kubebuilder create api --group mygroup --version v1 --kind MyResource
+    ```
+    
+    This will ask you if you want to:
+    * create a resource - type `y`.
+    * create a controller - you can do this, but you will end up deleting the code it generates. We only need the following markers, which Kubebuilder uses:
     ```go
     // +kubebuilder:rbac:groups=mygroup.my.domain,resources=myresources,verbs=get;list;watch;create;update;patch;delete
     // +kubebuilder:rbac:groups=mygroup.my.domain,resources=myresources/status,verbs=get;update;patch
     ```
+    
+5. Having created a resource, we now create an operator controller for this resource.
 
-Having created a resource, we now create an operator controller for this resource.
+    To do so we need to:
+    * Implement the `ResourceManager` interface.
+    * Implement the `DefinitionManager` interface.
+    * Call the `CreateGenericController` method to create a `GenericController`.
+    
+    This `GenericController` implements the `Reconciler` interface of the Kubernetes controller runtime:
+    ```go
+    type Reconciler interface {
+    	Reconcile(Request) (Result, error)
+    }
+    ```
 
-To do so we need to:
-* Implement the `ResourceManager` interface.
-* Implement the `DefinitionManager` interface.
-* Call the `CreateGenericController` method to create a `GenericController`.
+6. Wire this into our main method. 
 
-This `GenericController` implements the `Reconciler` interface:
-```go
-type Reconciler interface {
-	Reconcile(Request) (Result, error)
-}
-```
-
-We then need to wire this into our main method. Take a look at the example `main.go` to see how this is done.
+    Take a look at the example `main.go` to see how this is done.
