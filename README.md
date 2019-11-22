@@ -4,8 +4,8 @@
 
 Operatify provides a generic custom controller implementation for [Kubebuilder](https://book.kubebuilder.io/) operators for resources with management APIs 
 consisting of CRUD (create, read, update and delete) operations, typically REST APIs. These may be for example:
-* Cloud Resources and Services
-* PaaS (Platform as a Service) Services
+* Cloud resources and services
+* PaaS (Platform as a Service) services
 
 For a full motivation and introduction, see [this blog post](https://www.stephenzoio.com/kubernetes-operators-for-resource-management/).
 
