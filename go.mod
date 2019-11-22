@@ -1,4 +1,4 @@
-module github.com/szoio/operatify
+module github.com/operatify/operatify
 
 go 1.12
 
