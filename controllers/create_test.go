@@ -5,8 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/szoio/operatify/controllers/manager"
-	"github.com/szoio/operatify/reconciler"
+	"github.com/operatify/operatify/controllers/manager"
+	"github.com/operatify/operatify/reconciler"
 )
 
 var _ = Describe("Test Create and Delete", func() {

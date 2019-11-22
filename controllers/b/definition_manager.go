@@ -18,10 +18,10 @@ package b
 import (
 	"context"
 
-	"github.com/szoio/operatify/controllers/a"
+	"github.com/operatify/operatify/controllers/a"
 
-	"github.com/szoio/operatify/api/v1alpha1"
-	"github.com/szoio/operatify/reconciler"
+	"github.com/operatify/operatify/api/v1alpha1"
+	"github.com/operatify/operatify/reconciler"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )

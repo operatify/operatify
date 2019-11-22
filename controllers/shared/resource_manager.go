@@ -18,12 +18,12 @@ package shared
 import (
 	"context"
 
-	"github.com/szoio/operatify/api/v1alpha1"
+	"github.com/operatify/operatify/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/go-logr/logr"
-	"github.com/szoio/operatify/controllers/manager"
-	"github.com/szoio/operatify/reconciler"
+	"github.com/operatify/operatify/controllers/manager"
+	"github.com/operatify/operatify/reconciler"
 	"k8s.io/client-go/tools/record"
 )
 

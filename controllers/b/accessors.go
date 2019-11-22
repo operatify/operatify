@@ -18,8 +18,8 @@ package b
 import (
 	"fmt"
 
-	api "github.com/szoio/operatify/api/v1alpha1"
-	"github.com/szoio/operatify/reconciler"
+	api "github.com/operatify/operatify/api/v1alpha1"
+	"github.com/operatify/operatify/reconciler"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )

@@ -17,15 +17,15 @@ package main
 
 import (
 	"flag"
-	"github.com/szoio/operatify/controllers/b"
+	"github.com/operatify/operatify/controllers/b"
 	"os"
 
-	"github.com/szoio/operatify/controllers/a"
-	"github.com/szoio/operatify/controllers/manager"
-	"github.com/szoio/operatify/reconciler"
+	"github.com/operatify/operatify/controllers/a"
+	"github.com/operatify/operatify/controllers/manager"
+	"github.com/operatify/operatify/reconciler"
 
-	api "github.com/szoio/operatify/api/v1alpha1"
-	testv1alpha1 "github.com/szoio/operatify/api/v1alpha1"
+	api "github.com/operatify/operatify/api/v1alpha1"
+	testv1alpha1 "github.com/operatify/operatify/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"

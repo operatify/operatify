@@ -3,10 +3,10 @@ services:
   docker-in-docker:
     image: operatify-dev-container:0.1.0
     network_mode: "host"
-    working_dir: /go/src/github.com/szoio/operatify
+    working_dir: /go/src/github.com/operatify/operatify
     volumes:
       # Update this to wherever you want VS Code to mount the folder of your project
-      - ..:/go/src/github.com/szoio/operatify
+      - ..:/go/src/github.com/operatify/operatify
 
       # This lets you avoid setting up Git again in th container
       - ~/.gitconfig:/root/.gitconfig

@@ -21,19 +21,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/szoio/operatify/controllers/b"
+	"github.com/operatify/operatify/controllers/b"
 
-	"github.com/szoio/operatify/controllers/shared"
+	"github.com/operatify/operatify/controllers/shared"
 
-	"github.com/szoio/operatify/controllers/a"
-	"github.com/szoio/operatify/controllers/manager"
-	"github.com/szoio/operatify/reconciler"
+	"github.com/operatify/operatify/controllers/a"
+	"github.com/operatify/operatify/controllers/manager"
+	"github.com/operatify/operatify/reconciler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	api "github.com/szoio/operatify/api/v1alpha1"
-	testv1alpha1 "github.com/szoio/operatify/api/v1alpha1"
+	api "github.com/operatify/operatify/api/v1alpha1"
+	testv1alpha1 "github.com/operatify/operatify/api/v1alpha1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
