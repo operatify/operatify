@@ -30,7 +30,7 @@ To make and run tests:
 * In another terminal window run a bash shell in this container `docker exec -it devcontainer_docker-in-docker_1 bash`
 * In this shell run `make test`
 
-If all goes well, you should see the following output or something similar:
+If all goes according to plan, you should see the following output or something similar:
 
 ```text
 Ran 19 of 19 Specs in 24.559 seconds
@@ -74,7 +74,7 @@ Start by following the Kubebuilder Instructions [as in their tutorial](https://b
     // +kubebuilder:rbac:groups=mygroup.my.domain,resources=myresources/status,verbs=get;update;patch
     ```
     
-5. Having created a resource, we now create an operator controller for this resource.
+5. Create an operator controller for this resource.
 
     To do so we need to:
     * Implement the `ResourceManager` interface.
