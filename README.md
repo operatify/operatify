@@ -9,6 +9,10 @@ consisting of CRUD (create, read, update and delete) operations, typically REST 
 
 For a full motivation and introduction, see [this blog post](https://www.stephenzoio.com/kubernetes-operators-for-resource-management/).
 
+## Roadmap
+
+* Example operators forthcoming... watch this space for details.
+
 ## Getting Started
 
 ### Building Operatify
