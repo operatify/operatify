@@ -296,7 +296,7 @@ func (r *reconcileRunner) applyExecute(ctx context.Context) (ReconcileState, err
 	// save the last updated spec as a metadata annotation
 	r.instanceUpdater.setAnnotation(lastAppliedAnnotation, r.getJsonSpec())
 
-	// set it to succeeded, completing (if there is a CompletionHandler), or await verification
+	// set it to succeeded, completing (if there is a CompletionRunner), or await verification
 	if applyResult.awaitingVerification() {
 		r.instanceUpdater.setStatusPayload(applyResponse.Status)
 		return Verifying, nil
@@ -309,7 +309,7 @@ func (r *reconcileRunner) applyExecute(ctx context.Context) (ReconcileState, err
 }
 
 func (r *reconcileRunner) succeedOrComplete() ReconcileState {
-	if r.CompletionFactory == nil || r.status.IsSucceeded() {
+	if r.CompletionRunner == nil || r.status.IsSucceeded() {
 		return Succeeded
 	} else {
 		return Completing
@@ -318,8 +318,8 @@ func (r *reconcileRunner) succeedOrComplete() ReconcileState {
 
 func (r *reconcileRunner) runCompletion(ctx context.Context) (ctrl.Result, error) {
 	var ppError error = nil
-	if r.CompletionFactory != nil {
-		if handler := r.CompletionFactory(r.GenericController); handler != nil {
+	if r.CompletionRunner != nil {
+		if handler := r.CompletionRunner(r.GenericController); handler != nil {
 			ppError = handler.Run(ctx, r.instance)
 		}
 	}

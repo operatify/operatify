@@ -40,13 +40,13 @@ type GenericController struct {
 	DefinitionManager  DefinitionManager
 	FinalizerName      string
 	AnnotationBaseName string
-	CompletionFactory  func(*GenericController) CompletionHandler
+	CompletionRunner   func(*GenericController) CompletionRunner
 }
 
 // A handler that is invoked after the resource has been successfully created
 // and it has been verified to be ready for consumption (ReconcileState=Success)
 // This is typically used for example to create secrets with authentication information
-type CompletionHandler interface {
+type CompletionRunner interface {
 	Run(ctx context.Context, r runtime.Object) error
 }
 
@@ -67,7 +67,7 @@ func CreateGenericController(
 	defMgr DefinitionManager,
 	finalizerName string,
 	annotationBaseName string,
-	completionFactory func(*GenericController) CompletionHandler) (*GenericController, error) {
+	completionRunner func(*GenericController) CompletionRunner) (*GenericController, error) {
 	gc := &GenericController{
 		Parameters:         parameters,
 		ResourceKind:       resourceKind,
@@ -79,7 +79,7 @@ func CreateGenericController(
 		DefinitionManager:  defMgr,
 		FinalizerName:      finalizerName,
 		AnnotationBaseName: annotationBaseName,
-		CompletionFactory:  completionFactory,
+		CompletionRunner:   completionRunner,
 	}
 	if err := gc.validate(); err != nil {
 		return nil, err
