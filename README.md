@@ -48,7 +48,7 @@ Start by following the Kubebuilder Instructions [as in their tutorial](https://b
     kubebuilder init --domain my.domain
     ```
 
-2. Add the following require to your `go.mod` file (use the latest release version rather than v0.0.1 below).
+2. Add the following require to your `go.mod` file (use the latest release version rather than v0.1.1 below).
 
     ```go
     github.com/operatify/operatify v0.1.1
