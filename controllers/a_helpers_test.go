@@ -4,7 +4,7 @@ import (
 	"context"
 
 	. "github.com/onsi/gomega"
-	"github.com/operatify/operatify/api/v1alpha1"
+	apiv1 "github.com/operatify/operatify/api/v1alpha1"
 	"github.com/operatify/operatify/reconciler"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -18,29 +18,29 @@ func deleteObjectA(key types.NamespacedName) error {
 	return k8sClient.Delete(context.Background(), f)
 }
 
-func getObjectA(key types.NamespacedName) (*v1alpha1.A, error) {
-	f := &v1alpha1.A{}
+func getObjectA(key types.NamespacedName) (*apiv1.ATest, error) {
+	f := &apiv1.ATest{}
 	err := k8sClient.Get(context.Background(), key, f)
 	return f, err
 }
 
-func nameAndSpecA(aId string) (types.NamespacedName, *v1alpha1.A) {
+func nameAndSpecA(aId string) (types.NamespacedName, *apiv1.ATest) {
 	return nameAndSpecWithAnnotationsA(aId, nil)
 }
 
-func nameAndSpecWithAnnotationsA(aId string, annotations map[string]string) (types.NamespacedName, *v1alpha1.A) {
+func nameAndSpecWithAnnotationsA(aId string, annotations map[string]string) (types.NamespacedName, *apiv1.ATest) {
 	key := types.NamespacedName{
 		Name:      aId,
 		Namespace: "default",
 	}
-	spec := &v1alpha1.A{
+	spec := &apiv1.ATest{
 		ObjectMeta: v1.ObjectMeta{
 			Name:        key.Name,
 			Namespace:   key.Namespace,
 			Annotations: annotations,
 		},
-		Spec: v1alpha1.ASpec{
-			Spec: v1alpha1.Spec{
+		Spec: apiv1.ASpec{
+			Spec: apiv1.Spec{
 				Id: aId,
 			},
 		},

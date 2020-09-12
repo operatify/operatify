@@ -80,7 +80,7 @@ func main() {
 		Scheme:                 scheme,
 		Manager:                store,
 	}).SetupWithManager(mgr, controllerParams, nil); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "A")
+		setupLog.Error(err, "unable to create controller", "controller", "ATest")
 		os.Exit(1)
 	}
 
@@ -89,7 +89,7 @@ func main() {
 		Scheme:                 scheme,
 		Manager:                store,
 	}).SetupWithManager(mgr, controllerParams, nil); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "B")
+		setupLog.Error(err, "unable to create controller", "controller", "BTest")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

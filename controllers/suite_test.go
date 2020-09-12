@@ -21,24 +21,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/operatify/operatify/controllers/b"
-
-	"github.com/operatify/operatify/controllers/shared"
-
 	"github.com/operatify/operatify/controllers/a"
+	"github.com/operatify/operatify/controllers/b"
 	"github.com/operatify/operatify/controllers/manager"
+	"github.com/operatify/operatify/controllers/shared"
 	"github.com/operatify/operatify/reconciler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	api "github.com/operatify/operatify/api/v1alpha1"
 	testv1alpha1 "github.com/operatify/operatify/api/v1alpha1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
@@ -63,7 +61,7 @@ func TestAPIs(t *testing.T) {
 
 	RunSpecsWithDefaultAndCustomReporters(t,
 		"Controller Suite",
-		[]Reporter{envtest.NewlineReporter{}})
+		[]Reporter{printer.NewlineReporter{}})
 }
 
 var _ = BeforeSuite(func(done Done) {
@@ -79,9 +77,6 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	err = api.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-
 	err = testv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -89,6 +84,8 @@ var _ = BeforeSuite(func(done Done) {
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme.Scheme,
 	})
+
+	Expect(k8sManager).ToNot(BeNil())
 	Expect(err).ToNot(HaveOccurred())
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -135,11 +132,11 @@ var _ = AfterSuite(func() {
 
 func randomStringWithCharset(length int, charset string) string {
 	var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
+	bytes := make([]byte, length)
+	for i := range bytes {
+		bytes[i] = charset[seededRand.Intn(len(charset))]
 	}
-	return string(b)
+	return string(bytes)
 }
 
 const charset = "abcdefghijklmnopqrstuvwxyz"

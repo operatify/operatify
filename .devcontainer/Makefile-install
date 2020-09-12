@@ -11,13 +11,6 @@ endif
 	kind create cluster
 
 set-kindcluster: install-kind
-ifeq (${shell kind get kubeconfig-path --name="kind"},${KUBECONFIG})
-	@echo "kubeconfig-path points to kind path"
-else
-	@echo "please run below command in your shell and then re-run make set-kindcluster"
-	@echo  "\e[31mexport KUBECONFIG=$(shell kind get kubeconfig-path --name="kind")\e[0m"
-	@exit 111
-endif
 	make create-kindcluster
 	
 	@echo "getting value of KUBECONFIG"
@@ -25,18 +18,11 @@ endif
 	@echo "getting value of kind kubeconfig-path"
 	
 	kubectl cluster-info
-	kubectl create namespace azureoperator-system 
-	kubectl --namespace azureoperator-system \
-    create secret generic azureoperatorsettings \
-    --from-literal=AZURE_CLIENT_ID=${AZURE_CLIENT_ID} \
-    --from-literal=AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET} \
-    --from-literal=AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID} \
-    --from-literal=AZURE_TENANT_ID=${AZURE_TENANT_ID}
 
 install-kind:
 ifeq (,$(shell which kind))
 	@echo "installing kind"
-	GO111MODULE="on" go get sigs.k8s.io/kind@v0.4.0
+	GO111MODULE="on" go get sigs.k8s.io/kind@v0.8.1
 else
 	@echo "kind has been installed"
 endif
@@ -45,11 +31,11 @@ install-kubebuilder:
 ifeq (,$(shell which kubebuilder))
 	@echo "installing kubebuilder"
 	# download kubebuilder and extract it to tmp
-	curl -sL https://go.kubebuilder.io/dl/2.0.1/$(shell go env GOOS)/$(shell go env GOARCH) | tar -xz -C /tmp/
+	curl -sL https://go.kubebuilder.io/dl/2.3.1/$(shell go env GOOS)/$(shell go env GOARCH) | tar -xz -C /tmp/
 	# move to a long-term location and put it on your path
 	# (you'll need to set the KUBEBUILDER_ASSETS env var if you put it somewhere else)
-	mv /tmp/kubebuilder_2.0.1_$(shell go env GOOS)_$(shell go env GOARCH) /usr/local/kubebuilder
-	export PATH=$$PATH:/usr/local/kubebuilder/bin
+	mv /tmp/kubebuilder_2.3.1_$(shell go env GOOS)_$(shell go env GOARCH) /usr/local/kubebuilder
+	export PATH=$PATH:/usr/local/kubebuilder/bin
 else
 	@echo "kubebuilder has been installed"
 endif
@@ -59,7 +45,7 @@ ifeq (,$(shell which kustomize))
 	@echo "installing kustomize"
 	mkdir -p /usr/local/kubebuilder/bin
 	# download kustomize
-	curl -o /usr/local/kubebuilder/bin/kustomize -sL "https://go.kubebuilder.io/kustomize/$(shell go env GOOS)/$(shell go env GOARCH)"
+	cd /usr/local/kubebuilder/bin && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
 	# set permission
 	chmod a+x /usr/local/kubebuilder/bin/kustomize
 	$(shell which kustomize)

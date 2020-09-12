@@ -35,10 +35,10 @@ type ControllerFactory struct {
 	Manager                *manager.Manager
 }
 
-// +kubebuilder:rbac:groups=test.stephenzoio.com,resources=bs,verbs=get;list;watch;Create;update;patch;delete
+// +kubebuilder:rbac:groups=test.stephenzoio.com,resources=bs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=test.stephenzoio.com,resources=bs/status,verbs=get;update;patch
 
-const ResourceKind = "B"
+const ResourceKind = "BTest"
 const FinalizerName = "b.finalizers.com"
 
 func (factory *ControllerFactory) SetupWithManager(mgr ctrl.Manager, parameters reconciler.ReconcileParameters, log *logr.Logger) error {
@@ -54,7 +54,7 @@ func (factory *ControllerFactory) SetupWithManager(mgr ctrl.Manager, parameters 
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.B{}).
+		For(&api.BTest{}).
 		Complete(gc)
 }
 

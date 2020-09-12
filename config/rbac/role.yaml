@@ -11,7 +11,7 @@ rules:
   resources:
   - as
   verbs:
-  - Create
+  - create
   - delete
   - get
   - list
@@ -31,7 +31,7 @@ rules:
   resources:
   - bs
   verbs:
-  - Create
+  - create
   - delete
   - get
   - list

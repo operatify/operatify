@@ -2,8 +2,8 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/test.stephenzoio.com_as.yaml
-- bases/test.stephenzoio.com_bs.yaml
+- bases/test.stephenzoio.com_as.yaml.xxx
+- bases/webapp.kt.stephenzoio.com_guestbooks.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

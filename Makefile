@@ -19,16 +19,20 @@ manager: generate fmt vet
 	go build -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet
+run: generate fmt vet manifests
 	go run ./main.go
 
 # Install CRDs into a cluster
-install: generate
-	kubectl apply -f config/crd/bases
+install: manifests
+	kustomize build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: manifests
+	kustomize build config/crd | kubectl delete -f -
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	kubectl apply -f config/crd/bases
+	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
 
 timestamp := $(shell /bin/date "+%Y%m%d-%H%M%S")
@@ -51,49 +55,50 @@ vet:
 
 # Generate code
 generate: manifests
-	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths=./api/...
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-test: vet
-	go test -v ./controllers
+# Run tests
+test: generate fmt vet manifests
+	go test ./controllers -coverprofile cover.out
+
+# Build the docker image
+docker-build: test
+	docker build . -t ${IMG}
+
+# Push the docker image
+docker-push:
+	docker push ${IMG}
 
 # find or download controller-gen
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.0
-CONTROLLER_GEN=$(shell go env GOPATH)/bin/controller-gen
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
-
-.PHONY: install-bindata
-install-bindata:
-	go get -u github.com/jteeuwen/go-bindata/...
-
-.PHONE:
-generate-template:
-	go-bindata -pkg template -prefix pkg/template/assets/ -o pkg/template/templates.go pkg/template/assets/
 
 create-kindcluster:
 ifeq (,$(shell kind get clusters))
 	@echo "no kind cluster"
 else
 	@echo "kind cluster is running, deleteing the current cluster"
-	kind delete cluster 
+	kind delete cluster
 endif
 	@echo "creating kind cluster"
 	kind create cluster
 
 set-kindcluster:
-ifeq (${shell kind get kubeconfig-path --name="kind"},${KUBECONFIG})
-	@echo "kubeconfig-path points to kind path"
-else
-	@echo "please run below command in your shell and then re-run make set-kindcluster"
-	@echo  "\e[31mexport KUBECONFIG=$(shell kind get kubeconfig-path --name="kind")\e[0m"
-	@exit 111
-endif
 	make create-kindcluster
-	
+
 	@echo "getting value of KUBECONFIG"
 	@echo ${KUBECONFIG}
 	@echo "getting value of kind kubeconfig-path"
