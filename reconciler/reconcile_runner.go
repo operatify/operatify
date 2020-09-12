@@ -113,7 +113,7 @@ func (r *reconcileRunner) run(ctx context.Context) (ctrl.Result, error) {
 	// **** Succeeded
 	// **** Recreating
 	// **** Failed
-	// Verify the resource state on Azure
+	// Verify the resource state
 	if status.IsVerifying() || status.IsPending() || status.IsSucceeded() || status.IsRecreating() || status.IsFailed() {
 		return r.verify(ctx)
 	}
@@ -155,15 +155,15 @@ func (r *reconcileRunner) verify(ctx context.Context) (ctrl.Result, error) {
 	return r.applyTransition(ctx, "Verify", nextState, ensureErr)
 }
 
-const rejectCreateManagedResource = "permission to create Azure resource is not set. Annotation '*/access-permissions' is present, but the flag 'C' is not set"
-const rejectUpdateManagedResource = "permission to update Azure resource is not set. Annotation '*/access-permissions' is present, but the flag 'U' is not set"
-const rejectDeleteManagedResource = "permission to delete or recreate Azure resource is not set. Annotation '*/access-permissions' is present, but the flag 'D' is not set"
+const rejectCreateManagedResource = "permission to create external resource is not set. Annotation '*/access-permissions' is present, but the flag 'C' is not set"
+const rejectUpdateManagedResource = "permission to update external resource is not set. Annotation '*/access-permissions' is present, but the flag 'U' is not set"
+const rejectDeleteManagedResource = "permission to delete or recreate external resource is not set. Annotation '*/access-permissions' is present, but the flag 'D' is not set"
 
 func (r *reconcileRunner) verifyExecute(ctx context.Context) (ReconcileState, error) {
 	status := r.status
 	currentState := status.State
 
-	r.log.Info("Verifying state of resource on Azure")
+	r.log.Info("Verifying state of external resource")
 	verifyResponse, err := r.ResourceManager.Verify(ctx, r.resourceSpec())
 	verifyResult := verifyResponse.Result
 	permissions := r.getAccessPermissions()
@@ -175,8 +175,8 @@ func (r *reconcileRunner) verifyExecute(ctx context.Context) (ReconcileState, er
 	}
 
 	// **** Deleting
-	// if the Azure resource is any state where it exists, but the K8s resource is recreating
-	// we assume that the resource is being deleted asynchronously in Azure, but there is no way to distinguish
+	// if the external resource is any state where it exists, but the K8s resource is recreating
+	// we assume that the external resource is being deleted asynchronously, but there is no way to distinguish
 	// from the SDK that is deleting - it is either present or not. so we requeue the loop and wait for it to become `missing`
 	if verifyResult.deleting() || verifyResult.exists() && status.IsRecreating() {
 		r.log.Info("Retrying verification: resource awaiting deletion before recreation can begin, requeuing reconcile loop")
@@ -213,7 +213,7 @@ func (r *reconcileRunner) verifyExecute(ctx context.Context) (ReconcileState, er
 	}
 
 	// **** UpdateRequired
-	// The resource exists in Azure, is invalid but updateable, so doesn't need to be recreated
+	// The external resource exists, is invalid but updateable, so doesn't need to be recreated
 	if verifyResult.updateRequired() {
 		if !permissions.update() {
 			// fail if permission to update is not present
@@ -223,7 +223,7 @@ func (r *reconcileRunner) verifyExecute(ctx context.Context) (ReconcileState, er
 	}
 
 	// **** RecreateRequired
-	// The resource exists in Azure, is invalid and needs to be created
+	// The resource exists externally, is invalid and needs to be created
 	if verifyResult.recreateRequired() {
 		if !permissions.delete() {
 			// fail if permission to delete is not present
@@ -251,7 +251,7 @@ func (r *reconcileRunner) verifyExecute(ctx context.Context) (ReconcileState, er
 }
 
 func (r *reconcileRunner) apply(ctx context.Context) (ctrl.Result, error) {
-	r.log.Info("Ready to create or update resource in Azure")
+	r.log.Info("Ready to create or update external resource")
 	nextState, ensureErr := r.applyExecute(ctx)
 	return r.applyTransition(ctx, "Ensure", nextState, ensureErr)
 }
@@ -264,7 +264,7 @@ func (r *reconcileRunner) applyExecute(ctx context.Context) (ReconcileState, err
 	lastAppliedAnnotation := r.AnnotationBaseName + LastAppliedAnnotation
 	permissions := r.getAccessPermissions()
 
-	// apply that the resource is created or updated in Azure (though it won't necessarily be ready, it still needs to be verified)
+	// apply that the resource is created or updated externally (though it won't necessarily be ready, it still needs to be verified)
 	var err error
 	var applyResponse ApplyResponse
 	if status.IsCreating() {
@@ -288,7 +288,7 @@ func (r *reconcileRunner) applyExecute(ctx context.Context) (ReconcileState, err
 		if err != nil {
 			errMsg = err.Error()
 		}
-		r.Recorder.Event(instance, corev1.EventTypeWarning, "Failed", fmt.Sprintf("Couldn't create or update resource in azure: %v", errMsg))
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "Failed", fmt.Sprintf("Couldn't create or update resource externally: %v", errMsg))
 		return Failed, err
 	}
 

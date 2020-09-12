@@ -1,3 +1,3 @@
 package shared
 
-const AnnotationBaseName = "azure.microsoft.com"
+const AnnotationBaseName = "operatify.stephenzoio.com"

@@ -5,10 +5,6 @@
     "workspaceFolder": "/workspace",
     "shutdownAction": "stopCompose",
     "postCreateCommand": "make set-kindcluster",
-    "extensions": [
-        "ms-azuretools.vscode-docker",
-        "ms-vscode.go"
-    ],
     "settings": {
         "terminal.integrated.shell.linux": "zsh",
         "go.gopath": "/go",
@@ -16,9 +12,6 @@
         "go.useLanguageServer": true,
         "go.toolsEnvVars": {
             "GO111MODULE": "on"
-        },
-        "remote.extensionKind": {
-            "ms-azuretools.vscode-docker": "workspace"
         }
     }
 }
