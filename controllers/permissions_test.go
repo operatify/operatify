@@ -35,7 +35,7 @@ var _ = Describe("Test permissions", func() {
 			Expect(record.Events).To(Not(ContainElement(manager.EventCreate)))
 
 			object, _ := getObjectA(key)
-			Expect(object.Status.Message).To(HavePrefix("permission to create resource is not set"))
+			Expect(object.Status.Message).To(HavePrefix("permission to create external resource is not set"))
 		})
 
 		It("should update if update if permission is present", func() {
