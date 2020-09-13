@@ -1,7 +1,7 @@
 version: '3'
 services:
   docker-in-docker:
-    image: operatify-dev-container:0.1.0
+    image: operatify-dev-container:0.2.0
     network_mode: "host"
     working_dir: /go/src/github.com/operatify/operatify
     volumes:

@@ -40,15 +40,15 @@ RUN go get -u -v \
         github.com/fatih/gomodifytags \
         github.com/cweill/gotests/... \
         golang.org/x/tools/cmd/goimports \
+        golang.org/x/tools/gopls \
         golang.org/x/lint/golint 2>&1
-        # golang.org/x/tools/cmd/gopls \
 RUN go get -u -v \
         github.com/alecthomas/gometalinter \
         honnef.co/go/tools/... \
         # github.com/golangci/golangci-lint/cmd/golangci-lint \
         github.com/mgechev/revive \
         github.com/derekparker/delve/cmd/dlv 2>&1
-    #
+
     # Clean up
 RUN apt-get autoremove -y \
     && apt-get clean -y \
@@ -69,7 +69,7 @@ RUN apt-get update \
 
 # Verify git, process tools installed
 RUN apt-get -y install git procps wget nano zsh inotify-tools jq
-RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
+RUN wget https://github.com/ohmyzsh/ohmyzsh/raw/master/tools/install.sh -O - | zsh || true
 
 RUN git clone https://github.com/ahmetb/kubectx /opt/kubectx \
     && ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx \
@@ -84,5 +84,5 @@ RUN make install-kubebuilder
 RUN make install-kustomize
 RUN make install-test-dependency
 
-# Set the default shell to bash instead of sh
+# Set the default shell to zsh instead of sh
 ENV SHELL /usr/bin/zsh

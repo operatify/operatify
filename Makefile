@@ -59,7 +59,7 @@ generate: manifests
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./controllers -coverprofile cover.out
+	go test ./controllers -v -coverprofile cover.out
 
 # Build the docker image
 docker-build: test
