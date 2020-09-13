@@ -42,7 +42,7 @@ type ResourceManager interface {
 	Delete(context.Context, ResourceSpec) (DeleteResult, error)
 }
 
-// The Result of a create or update operation on Azure
+// The Result of a create or update operation
 type ApplyResult string
 
 const (
@@ -51,7 +51,7 @@ const (
 	ApplyResultError                ApplyResult = "Error"
 )
 
-// The Result of a verify operation on Azure
+// The Result of a verify operation
 type VerifyResult string
 
 const (
@@ -64,7 +64,7 @@ const (
 	VerifyResultError            VerifyResult = "Error"
 )
 
-// The Result of a delete operation on Azure
+// The Result of a delete operation
 type DeleteResult string
 
 const (
@@ -92,7 +92,7 @@ func (r DeleteResult) alreadyDeleted() bool       { return r == DeleteAlreadyDel
 func (r DeleteResult) succeeded() bool            { return r == DeleteSucceeded }
 func (r DeleteResult) awaitingVerification() bool { return r == DeleteAwaitingVerification }
 
-// The Result of a create or update operation on Azure, along with Status information, if present
+// The Result of a create or update operation, along with Status information, if present
 type ApplyResponse struct {
 	Result ApplyResult
 	Status interface{}

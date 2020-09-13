@@ -78,7 +78,7 @@ func (updater *instanceUpdater) setOwnerReferences(owners []runtime.Object) {
 			controller := true
 			meta, _ := apimeta.Accessor(o)
 			references[i] = metav1.OwnerReference{
-				APIVersion: "v1",
+				APIVersion: "v1alpha1",
 				Kind:       o.GetObjectKind().GroupVersionKind().Kind,
 				Name:       meta.GetName(),
 				UID:        meta.GetUID(),

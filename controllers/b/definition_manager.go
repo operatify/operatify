@@ -30,7 +30,7 @@ type definitionManager struct{}
 
 func (dm *definitionManager) GetDefinition(ctx context.Context, namespacedName types.NamespacedName) *reconciler.ResourceDefinition {
 	return &reconciler.ResourceDefinition{
-		InitialInstance: &v1alpha1.B{},
+		InitialInstance: &v1alpha1.BTest{},
 		StatusAccessor:  GetStatus,
 		StatusUpdater:   updateStatus,
 	}
@@ -45,7 +45,7 @@ func (dm *definitionManager) GetDependencies(ctx context.Context, thisInstance r
 
 	getDependency := func(dep string) *reconciler.Dependency {
 		return &reconciler.Dependency{
-			InitialInstance: &v1alpha1.A{},
+			InitialInstance: &v1alpha1.ATest{},
 			NamespacedName: types.NamespacedName{
 				Namespace: x.Namespace,
 				Name:      dep,

@@ -3,8 +3,10 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
   creationTimestamp: null
-  name: as.test.stephenzoio.com
+  name: atests.test.stephenzoio.com
 spec:
   additionalPrinterColumns:
   - JSONPath: .status.state
@@ -15,30 +17,30 @@ spec:
     type: string
   group: test.stephenzoio.com
   names:
-    kind: A
-    listKind: AList
-    plural: as
-    singular: a
-  scope: ""
+    kind: ATest
+    listKind: ATestList
+    plural: atests
+    singular: atest
+  scope: Namespaced
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: A is the Schema for the as API
+      description: ATest is the Schema for the as API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
             of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
           description: 'Kind is a string value representing the REST resource this
             object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
         spec:
-          description: ASpec defines the desired state of A
+          description: ASpec defines the desired state of ATest
           properties:
             id:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster

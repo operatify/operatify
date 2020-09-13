@@ -47,10 +47,10 @@ func updateStatus(instance runtime.Object, status *reconciler.Status) error {
 	return nil
 }
 
-func convertInstance(obj runtime.Object) (*api.A, error) {
-	local, ok := obj.(*api.A)
+func convertInstance(obj runtime.Object) (*api.ATest, error) {
+	local, ok := obj.(*api.ATest)
 	if !ok {
-		return nil, fmt.Errorf("failed type assertion on kind: A")
+		return nil, fmt.Errorf("failed type assertion on kind: ATest")
 	}
 	return local, nil
 }

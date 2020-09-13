@@ -1,9 +1,4 @@
-#-------------------------------------------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
-#-------------------------------------------------------------------------------------------------------------
-
-FROM golang:1.12.5
+FROM golang:1.13
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -23,36 +18,39 @@ RUN apt-get update \
     # Install gocode-gomod
     && go get -x -d github.com/stamblerre/gocode 2>&1 \
     && go build -o gocode-gomod github.com/stamblerre/gocode \
-    && mv gocode-gomod $GOPATH/bin/ \
-    #
-    # Install Go tools
-    && go get -u -v \
+    && mv gocode-gomod $GOPATH/bin/
+
+# Install Go tools
+RUN go get -u -v \
         github.com/mdempsky/gocode \
         github.com/uudashr/gopkgs/cmd/gopkgs \
         github.com/ramya-rao-a/go-outline \
         github.com/acroca/go-symbols \
         github.com/godoctor/godoctor \
         golang.org/x/tools/cmd/guru \
-        golang.org/x/tools/cmd/gorename \
+        golang.org/x/tools/cmd/gorename 2>&1
+RUN go get -u -v \
         github.com/rogpeppe/godef \
         github.com/zmb3/gogetdoc \
         github.com/haya14busa/goplay/cmd/goplay \
         github.com/sqs/goreturns \
         github.com/josharian/impl \
-        github.com/davidrjenni/reftools/cmd/fillstruct \
+        github.com/davidrjenni/reftools/cmd/fillstruct 2>&1
+RUN go get -u -v \
         github.com/fatih/gomodifytags \
         github.com/cweill/gotests/... \
         golang.org/x/tools/cmd/goimports \
-        golang.org/x/lint/golint \
-        golang.org/x/tools/cmd/gopls \
+        golang.org/x/tools/gopls \
+        golang.org/x/lint/golint 2>&1
+RUN go get -u -v \
         github.com/alecthomas/gometalinter \
         honnef.co/go/tools/... \
-        github.com/golangci/golangci-lint/cmd/golangci-lint \
+        # github.com/golangci/golangci-lint/cmd/golangci-lint \
         github.com/mgechev/revive \
-        github.com/derekparker/delve/cmd/dlv 2>&1 \
-    #
+        github.com/derekparker/delve/cmd/dlv 2>&1
+
     # Clean up
-    && apt-get autoremove -y \
+RUN apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
@@ -67,17 +65,11 @@ RUN apt-get update \
     #
     # Install kubectl
     && curl -sSL -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
-    && chmod +x /usr/local/bin/kubectl \
-    #
-    # Install Helm
-    && curl -s https://raw.githubusercontent.com/helm/helm/master/scripts/get | bash - \
-    #
-    # Install Azure CLI
-    && curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    && chmod +x /usr/local/bin/kubectl
 
 # Verify git, process tools installed
 RUN apt-get -y install git procps wget nano zsh inotify-tools jq
-RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
+RUN wget https://github.com/ohmyzsh/ohmyzsh/raw/master/tools/install.sh -O - | zsh || true
 
 RUN git clone https://github.com/ahmetb/kubectx /opt/kubectx \
     && ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx \
@@ -92,5 +84,5 @@ RUN make install-kubebuilder
 RUN make install-kustomize
 RUN make install-test-dependency
 
-# Set the default shell to bash instead of sh
+# Set the default shell to zsh instead of sh
 ENV SHELL /usr/bin/zsh

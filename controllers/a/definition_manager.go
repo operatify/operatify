@@ -28,7 +28,7 @@ type definitionManager struct{}
 
 func (dm *definitionManager) GetDefinition(ctx context.Context, namespacedName types.NamespacedName) *reconciler.ResourceDefinition {
 	return &reconciler.ResourceDefinition{
-		InitialInstance: &v1alpha1.A{},
+		InitialInstance: &v1alpha1.ATest{},
 		StatusAccessor:  GetStatus,
 		StatusUpdater:   updateStatus,
 	}

@@ -22,7 +22,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// BSpec defines the desired state of B
+// BSpec defines the desired state of BTest
 type BSpec struct {
 	Spec `json:",inline"`
 	// some additional fields for owner and dependencies
@@ -34,8 +34,8 @@ type BSpec struct {
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 
-// B is the Schema for the bs API
-type B struct {
+// BTest is the Schema for the bs API
+type BTest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -45,13 +45,13 @@ type B struct {
 
 // +kubebuilder:object:root=true
 
-// BList contains a list of B
-type BList struct {
+// BTestList contains a list of BTest
+type BTestList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []B `json:"items"`
+	Items           []BTest `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&B{}, &BList{})
+	SchemeBuilder.Register(&BTest{}, &BTestList{})
 }

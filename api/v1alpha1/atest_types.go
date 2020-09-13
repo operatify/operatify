@@ -22,7 +22,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ASpec defines the desired state of A
+// ASpec defines the desired state of ATest
 type ASpec struct {
 	Spec `json:",inline"`
 }
@@ -31,8 +31,8 @@ type ASpec struct {
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 
-// A is the Schema for the as API
-type A struct {
+// ATest is the Schema for the as API
+type ATest struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
@@ -42,13 +42,13 @@ type A struct {
 
 // +kubebuilder:object:root=true
 
-// AList contains a list of A
-type AList struct {
+// ATestList contains a list of ATest
+type ATestList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []A `json:"items"`
+	Items           []ATest `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&A{}, &AList{})
+	SchemeBuilder.Register(&ATest{}, &ATestList{})
 }

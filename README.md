@@ -38,6 +38,13 @@ SUCCESS! -- 19 Passed | 0 Failed | 0 Pending | 0 Skipped
 --- PASS: TestAPIs (24.56s)
 ```
 
+You can also spin up a Kind cluster and run tests against that:
+    
+```
+make set-kindcluster
+USE_EXISTING_CLUSTER="true" make test
+```
+
 ### Using Operatify
 
 Start by following the Kubebuilder Instructions [as in their tutorial](https://book.kubebuilder.io/cronjob-tutorial/cronjob-tutorial.html)
@@ -67,8 +74,8 @@ Start by following the Kubebuilder Instructions [as in their tutorial](https://b
     ```
     
     This will ask you if you want to:
-    * create a resource - type `y`.
-    * create a controller - you can do this, but you will end up deleting the code it generates. We only need the following markers, which Kubebuilder uses:
+    * create a resource (y/n) - type `y`.
+    * create a controller (y/n) - you can do this, but you will end up deleting the code it generates. We only need the following markers, which Kubebuilder uses:
     ```go
     // +kubebuilder:rbac:groups=mygroup.my.domain,resources=myresources,verbs=get;list;watch;create;update;patch;delete
     // +kubebuilder:rbac:groups=mygroup.my.domain,resources=myresources/status,verbs=get;update;patch

@@ -63,12 +63,12 @@ func (r *reconcileFinalizer) handle() (ctrl.Result, error) {
 			}
 			permissions := r.getAccessPermissions()
 			if !permissions.delete() {
-				// if delete permission is turned off, just finalize, but don't delete on Azure
-				r.log.Info("Resource is not managed by operator, bypassing delete of resource in Azure")
+				// if delete permission is turned off, just finalize, but don't delete external resource
+				r.log.Info("Resource is not managed by operator, bypassing delete of external resource")
 				removeFinalizer = true
 			} else {
 				// This block of code should only ever get called once.
-				r.log.Info("Deleting resource in Azure")
+				r.log.Info("Deleting resource externally")
 				deleteResult, err := r.ResourceManager.Delete(ctx, r.resourceSpec())
 				if err != nil || deleteResult.error() {
 					log.Info("An error occurred attempting to delete managed object in finalizer. Cannot confirm that managed object has been deleted. Continuing deletion of kubernetes object anyway.")
