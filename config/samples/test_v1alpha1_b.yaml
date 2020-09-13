@@ -1,5 +1,5 @@
 apiVersion: test.stephenzoio.com/v1alpha1
-kind: B
+kind: BTest
 metadata:
   name: foo-b-k8s
 spec:
