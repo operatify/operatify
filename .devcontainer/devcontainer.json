@@ -2,9 +2,8 @@
     "name": "Go",
     "dockerComposeFile": "docker-compose.yml",
     "service": "docker-in-docker",
-    "workspaceFolder": "/workspace",
+    "workspaceFolder": "/go/src/github.com/operatify/operatify",
     "shutdownAction": "stopCompose",
-    "postCreateCommand": "make set-kindcluster",
     "settings": {
         "terminal.integrated.shell.linux": "zsh",
         "go.gopath": "/go",
