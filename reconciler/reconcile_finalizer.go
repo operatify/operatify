@@ -19,8 +19,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/prometheus/common/log"
-
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -58,7 +56,7 @@ func (r *reconcileFinalizer) handle() (ctrl.Result, error) {
 			requeue = true
 		} else if !isTerminating { // and one of verifyResult.ready() || verifyResult.recreateRequired() || verifyResult.updateRequired() || verifyResult.error()
 			if verifyResult.error() || err != nil {
-				log.Info("An error occurred verifying state of managed object in finalizer. Cannot confirm that managed object can be deleted. Continuing deletion of kubernetes object anyway.")
+				r.log.Info("An error occurred verifying state of managed object in finalizer. Cannot confirm that managed object can be deleted. Continuing deletion of kubernetes object anyway.")
 				// TODO: maybe should rather retry a certain number of times before failing
 			}
 			permissions := r.getAccessPermissions()
@@ -71,7 +69,7 @@ func (r *reconcileFinalizer) handle() (ctrl.Result, error) {
 				r.log.Info("Deleting resource externally")
 				deleteResult, err := r.ResourceManager.Delete(ctx, r.resourceSpec())
 				if err != nil || deleteResult.error() {
-					log.Info("An error occurred attempting to delete managed object in finalizer. Cannot confirm that managed object has been deleted. Continuing deletion of kubernetes object anyway.")
+					r.log.Info("An error occurred attempting to delete managed object in finalizer. Cannot confirm that managed object has been deleted. Continuing deletion of kubernetes object anyway.")
 					removeFinalizer = true
 				} else if deleteResult.alreadyDeleted() || deleteResult.succeeded() {
 					removeFinalizer = true
